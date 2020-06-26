@@ -9,7 +9,7 @@ services:
     environment:
         BOOK_SVC: http://bookings:5000/booking
         JAEGER_HOST: jaeger
-    entrypoint: ["opentracing-instrument",  "python", "app.py"]
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
   book-svc:
     build:
         context: ../../booksvc
@@ -18,19 +18,19 @@ services:
         PAY_SVC: http://payments:5000/process
         RSV_SVC: http://reservations:5000/reserve
         JAEGER_HOST: jaeger
-    entrypoint: ["opentracing-instrument",  "python", "app.py"]
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
   payment-svc:
     build:
         context: ../../paymentsvc
     container_name: payments
-    entrypoint: ["opentracing-instrument",  "python", "app.py"]
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     environment:
         JAEGER_HOST: jaeger
   reserve-svc:
     container_name: reservations
     build:
         context: ../../rsvsvc
-    entrypoint: ["opentracing-instrument",  "python", "app.py"]
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     environment:
         JAEGER_HOST: jaeger
   jaeger-svc:
