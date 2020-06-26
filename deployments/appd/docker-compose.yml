@@ -1,49 +1,52 @@
 version: '3'
 services:
-  api:
+  api-svc:
     build:
         context: ../../bookapi
     ports:
       - "5001:5000"
+    container_name: api
     environment:
-        BOOK_SVC: http://appd_book_1:5000/booking
-        JAEGER_HOST: appd_jaeger_1
-        APPD_APP_NAME: booking
+        BOOK_SVC: http://bookings:5000/booking
+        JAEGER_HOST: jaeger
         APPD_TIER_NAME: api
-        APPD_NODE_NAME: 0
     env_file:
       - appd.env
     entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
-  book:
+  book-svc:
     build:
         context: ../../booksvc
+    container_name: bookings
     environment:
-        PAY_SVC: http://appd_payment_1:5000/process
-        RSV_SVC: http://appd_reserve_1:5000/reserve
-        JAEGER_HOST: appd_jaeger_1
-        APPD_TIER_NAME: book
+        PAY_SVC: http://payments:5000/process
+        RSV_SVC: http://reservations:5000/reserve
+        JAEGER_HOST: jaeger
+        APPD_TIER_NAME: booking
     entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
     env_file:
       - appd.env
-  payment:
+  payment-svc:
     build:
         context: ../../paymentsvc
+    container_name: payments
     entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
     environment:
-        JAEGER_HOST: appd_jaeger_1
+        JAEGER_HOST: jaeger
         APPD_TIER_NAME: payment
     env_file:
       - appd.env
-  reserve:
+  reserve-svc:
+    container_name: reservations
     build:
         context: ../../rsvsvc
     entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
     environment:
-        JAEGER_HOST: appd_jaeger_1
+        JAEGER_HOST: jaeger
         APPD_TIER_NAME: reserve
     env_file:
       - appd.env
   jaeger:
+      container_name: jaeger
       image: jaegertracing/all-in-one
       ports:
           - 5775:5775/udp
