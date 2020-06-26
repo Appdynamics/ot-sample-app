@@ -21,9 +21,7 @@ services:
         PAY_SVC: http://appd_payment_1:5000/process
         RSV_SVC: http://appd_reserve_1:5000/reserve
         JAEGER_HOST: appd_jaeger_1
-        APPD_APP_NAME: booking
         APPD_TIER_NAME: book
-        APPD_NODE_NAME: 0
     entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
     env_file:
       - appd.env
@@ -33,9 +31,7 @@ services:
     entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
     environment:
         JAEGER_HOST: appd_jaeger_1
-        APPD_APP_NAME: booking
         APPD_TIER_NAME: payment
-        APPD_NODE_NAME: 0
     env_file:
       - appd.env
   reserve:
@@ -44,9 +40,7 @@ services:
     entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
     environment:
         JAEGER_HOST: appd_jaeger_1
-        APPD_APP_NAME: booking
         APPD_TIER_NAME: reserve
-        APPD_NODE_NAME: 0
     env_file:
       - appd.env
   jaeger:
