@@ -30,7 +30,9 @@ def make_booking():
                                                            "name": request.json["name"]})
     if not rsv_status.ok:
         return 'bad request for rsv', 400
+
     print(pay_status.json(), rsv_status.json())
+
     return jsonify({"payment": pay_status.json(), "reservation": rsv_status.json()})
 
 

@@ -27,7 +27,11 @@ def hello_world(username):
         "name": username,
         "date": datetime.datetime.today().strftime('%Y-%m-%d')
     })
-    return jsonify(status.json())
+    print(status.json())
+    if status.ok:
+        return status.json()
+    else:
+        return 'bad request!', 400
 
 
 if __name__ == '__main__':
