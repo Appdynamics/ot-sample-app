@@ -13,4 +13,5 @@ Plan is to include multiple deployment models
 ## Usage
 
 - $ `cd deployments/<deployment-model> && docker-compose up`
+- $  `curl -v http://localhost:5051/book/<string>`
 - $ `docker-compose down` to tear down
