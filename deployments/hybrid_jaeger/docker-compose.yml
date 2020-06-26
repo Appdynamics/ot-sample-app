@@ -1,0 +1,54 @@
+version: '3'
+services:
+  api-svc:
+    build:
+        context: ../../bookapi
+    ports:
+      - "5001:5000"
+    container_name: api
+    environment:
+        BOOK_SVC: http://bookings:5000/booking
+        JAEGER_HOST: jaeger
+        APPD_TIER_NAME: api
+    env_file:
+      - appd.env
+    entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
+  book-svc:
+    build:
+        context: ../../booksvc
+    container_name: bookings
+    environment:
+        PAY_SVC: http://payments:5000/process
+        RSV_SVC: http://reservations:5000/reserve
+        JAEGER_HOST: jaeger
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
+  payment-svc:
+    build:
+        context: ../../paymentsvc
+    container_name: payments
+    entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
+    environment:
+        JAEGER_HOST: jaeger
+        APPD_TIER_NAME: payment
+    env_file:
+      - appd.env
+  reserve-svc:
+    container_name: reservations
+    build:
+        context: ../../rsvsvc
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
+    environment:
+        JAEGER_HOST: jaeger
+  jaeger:
+      container_name: jaeger
+      image: jaegertracing/all-in-one
+      ports:
+          - 5775:5775/udp
+          - 6831:6831/udp
+          - 6832:6832/udp
+          - 5778:5778
+          - 16686:16686
+          - 14268:14268
+          - 9411:9411
+
+
