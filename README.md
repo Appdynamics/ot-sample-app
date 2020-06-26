@@ -13,3 +13,4 @@ Plan is to include multiple deployment models
 ## Usage
 
 - $ `cd deployments/<deployment-model> && docker-compose up`
+- $ `docker-compose down` to tear down
