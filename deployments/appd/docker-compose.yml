@@ -6,41 +6,49 @@ services:
     ports:
       - "5001:5000"
     environment:
-        BOOK_SVC: http://ot_book_1:5000/booking
-        JAEGER_HOST: ot_jaeger_1
-        APPDYNAMICS_AGENT_APPLICATION_NAME: booking
-        APPDYNAMICS_AGENT_TIER_NAME: api
-        APPDYNAMICS_AGENT_NODE_NAME: 0
-    entrypoint: ["pyagent", "python", "app.py"]
+        BOOK_SVC: http://appd_book_1:5000/booking
+        JAEGER_HOST: appd_jaeger_1
+        APPD_APP_NAME: booking
+        APPD_TIER_NAME: api
+        APPD_NODE_NAME: 0
+    env_file:
+      - appd.env
+    entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
   book:
     build:
         context: ../../booksvc
     environment:
-        PAY_SVC: http://ot_payment_1:5000/process
-        RSV_SVC: http://ot_reserve_1:5000/reserve
-        JAEGER_HOST: ot_jaeger_1
-        APPDYNAMICS_AGENT_APPLICATION_NAME: booking
-        APPDYNAMICS_AGENT_TIER_NAME: book
-        APPDYNAMICS_AGENT_NODE_NAME: 0
-    entrypoint: ["pyagent", "python", "app.py"]
+        PAY_SVC: http://appd_payment_1:5000/process
+        RSV_SVC: http://appd_reserve_1:5000/reserve
+        JAEGER_HOST: appd_jaeger_1
+        APPD_APP_NAME: booking
+        APPD_TIER_NAME: book
+        APPD_NODE_NAME: 0
+    entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
+    env_file:
+      - appd.env
   payment:
     build:
         context: ../../paymentsvc
-    entrypoint: ["pyagent", "python", "app.py"]
+    entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
     environment:
-        JAEGER_HOST: ot_jaeger_1
-        APPDYNAMICS_AGENT_APPLICATION_NAME: booking
-        APPDYNAMICS_AGENT_TIER_NAME: payment
-        APPDYNAMICS_AGENT_NODE_NAME: 0
+        JAEGER_HOST: appd_jaeger_1
+        APPD_APP_NAME: booking
+        APPD_TIER_NAME: payment
+        APPD_NODE_NAME: 0
+    env_file:
+      - appd.env
   reserve:
     build:
         context: ../../rsvsvc
-    entrypoint: ["pyagent", "python", "app.py"]
+    entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
     environment:
-        JAEGER_HOST: ot_jaeger_1
-        APPDYNAMICS_AGENT_APPLICATION_NAME: booking
-        APPDYNAMICS_AGENT_TIER_NAME: reserve
-        APPDYNAMICS_AGENT_NODE_NAME: 0
+        JAEGER_HOST: appd_jaeger_1
+        APPD_APP_NAME: booking
+        APPD_TIER_NAME: reserve
+        APPD_NODE_NAME: 0
+    env_file:
+      - appd.env
   jaeger:
       image: jaegertracing/all-in-one
       ports:
