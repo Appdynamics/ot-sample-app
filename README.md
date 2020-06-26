@@ -16,6 +16,7 @@ Plan is to include multiple deployment models
 
 - $ `cd deployments/ot && docker-compose up`
 - $  `curl -v http://localhost:5051/book/<string>`
+- $  Traces in Jaeger http://localhost:16686/
 - $ `docker-compose down` to tear down
 
 ### AppDynamics Instrumentation
