@@ -9,9 +9,6 @@ services:
     environment:
         BOOK_SVC: http://bookings:5000/booking
         JAEGER_HOST: jaeger
-        APPD_TIER_NAME: api
-    env_file:
-      - appd.env
     entrypoint: ["opentracing-instrument",  "python", "app.py"]
   book-svc:
     build:
