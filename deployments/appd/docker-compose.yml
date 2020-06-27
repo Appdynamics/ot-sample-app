@@ -1,50 +1,51 @@
 version: '3'
 services:
-  api-svc:
+  api:
     build:
         context: ../../bookapi
     ports:
       - "5001:5000"
     container_name: api
     environment:
-        BOOK_SVC: http://bookings:5000/booking
-        JAEGER_HOST: jaeger
         APPD_TIER_NAME: api
     env_file:
       - appd.env
+      - setup.env
     entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
-  book-svc:
+
+  bookings:
     build:
         context: ../../booksvc
     container_name: bookings
     environment:
-        PAY_SVC: http://payments:5000/process
-        RSV_SVC: http://reservations:5000/reserve
-        JAEGER_HOST: jaeger
         APPD_TIER_NAME: booking
     entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
     env_file:
       - appd.env
-  payment-svc:
+      - setup.env
+
+  payments:
     build:
         context: ../../paymentsvc
     container_name: payments
-    entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
     environment:
-        JAEGER_HOST: jaeger
         APPD_TIER_NAME: payment
     env_file:
       - appd.env
-  reserve-svc:
+      - setup.env
+    entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
+
+  reservations:
     container_name: reservations
     build:
         context: ../../rsvsvc
-    entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
     environment:
         JAEGER_HOST: jaeger
-        APPD_TIER_NAME: reserve
     env_file:
       - appd.env
+      - setup.env
+    entrypoint: ["pyagent", "run", "--",  "python", "app.py"]
+
   jaeger:
       container_name: jaeger
       image: jaegertracing/all-in-one

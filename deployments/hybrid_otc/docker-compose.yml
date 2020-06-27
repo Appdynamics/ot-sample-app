@@ -34,16 +34,36 @@ services:
     env_file:
       - setup.env
 
+  # Collector
+  otel-collector:
+    image: otel/opentelemetry-collector-dev:latest
+    container_name: otel-collector
+    command: ["--config=/etc/otel-config.yml", "${OTELCOL_ARGS}"]
+    volumes:
+      - ./otel-config.yml:/etc/otel-config.yml
+    ports:
+      - 55678:55678       # receiving port
+      - 55680
+    depends_on:
+      - zipkin
+    env_file:
+      - setup.env
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - 9411:9411
+
   jaeger:
-      container_name: jaeger
-      image: jaegertracing/all-in-one
-      ports:
-          - 5775:5775/udp
-          - 6831:6831/udp
-          - 6832:6832/udp
-          - 5778:5778
-          - 16686:16686
-          - 14268:14268
-          - 9411:9411
-
-
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+        - 5775:5775/udp
+        - 6831:6831/udp
+        - 6832:6832/udp
+        - 5778:5778
+        - 16686:16686
+        - 14268:14268
+        - 9412:9411
+        - 14250

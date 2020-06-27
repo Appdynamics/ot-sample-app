@@ -1,22 +1,15 @@
 from flask import jsonify, Flask, request
 import os
+import argparse
+
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import (
-    ConsoleSpanExporter,
-    BatchExportSpanProcessor
-)
+from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
 from opentelemetry.ext.jaeger import JaegerSpanExporter
+from opentelemetry.ext.otlp.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter
 
-
-trace.set_tracer_provider(TracerProvider())
-trace.get_tracer_provider().add_span_processor(
-    BatchExportSpanProcessor(JaegerSpanExporter(service_name='payment',
-                                                agent_host_name=os.getenv('JAEGER_HOST')))
-)
-
-
-app = Flask("paymentSvc")
+app = Flask("payments")
 
 
 @app.route("/process", methods=["POST"])
@@ -25,4 +18,19 @@ def process_card():
 
 
 if __name__ == '__main__':
-    app.run(debug=True,host='0.0.0.0')
+    trace.set_tracer_provider(TracerProvider())
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--exporter", type=str, choices=["appd", "otc", "jaeger", "console"],
+                        help="choose exporter", default="jaeger")
+    args = parser.parse_args()
+
+    if args.exporter == "otc":
+        exporter = OTLPSpanExporter(os.getenv("OTC_HOST"))
+    elif args.exporter == "console":
+        exporter = ConsoleSpanExporter()
+    else:
+        exporter = JaegerSpanExporter(service_name=app.name,
+                                      agent_host_name=os.getenv('JAEGER_HOST'))
+
+    trace.get_tracer_provider().add_span_processor(BatchExportSpanProcessor(exporter))
+    app.run(debug=True, host='0.0.0.0')
