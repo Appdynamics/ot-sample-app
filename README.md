@@ -38,3 +38,13 @@ OT monitored services: booking-service, reservations-service
 - $ `curl -v http://localhost:5051/book/<string>`
 - $  Traces in Jaeger http://localhost:16686/ and AppDynamcis Controller
 - $ `docker-compose down` to tear down
+
+### Using OpenTelemetry Collector (Jaeger and Zipkin as exporters)
+
+- $ `cd deployments/hybrid-jaeger`
+- $ `edit appd.env` to edit appdynamics controller info
+- $ `docker-compose up`
+- $ `curl -v http://localhost:5051/book/<string>`
+- $  Traces in Jaeger http://localhost:16686/
+- $  Traces in Zipkin http://localhost:9411/zipkin/
+- $ `docker-compose down` to tear down
