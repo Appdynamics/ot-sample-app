@@ -6,7 +6,7 @@ services:
     ports:
       - "5001:5000"
     container_name: api
-    entrypoint: ["opentelemetry-instrument",  "python", "app.py","--exporter", "otc"]
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
       - setup.env
 
@@ -14,7 +14,7 @@ services:
     build:
         context: ../../booksvc
     container_name: bookings
-    entrypoint: ["opentelemetry-instrument",  "python", "app.py","--exporter", "otc"]
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
       - setup.env
 
@@ -22,7 +22,7 @@ services:
     build:
         context: ../../paymentsvc
     container_name: payments
-    entrypoint: ["opentelemetry-instrument",  "python", "app.py" ,"--exporter", "otc"]
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
       - setup.env
 
@@ -30,7 +30,7 @@ services:
     container_name: reservations
     build:
         context: ../../rsvsvc
-    entrypoint: ["opentelemetry-instrument",  "python", "app.py", "--exporter", "otc"]
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
       - setup.env
 

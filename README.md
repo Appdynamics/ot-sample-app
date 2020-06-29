@@ -41,7 +41,7 @@ OT monitored services: booking-service, reservations-service
 
 ### Using OpenTelemetry Collector (Jaeger and Zipkin as exporters)
 
-- $ `cd deployments/hybrid-jaeger`
+- $ `cd deployments/hybrid-otc`
 - $ `edit appd.env` to edit appdynamics controller info
 - $ `docker-compose up`
 - $ `curl -v http://localhost:5051/book/<string>`
