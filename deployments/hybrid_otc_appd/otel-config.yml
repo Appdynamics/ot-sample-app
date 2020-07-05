@@ -27,5 +27,4 @@ service:
       receivers: [otlp]
       processors: [attributes/appdynamics]
       exporters: [logging]
-      #exporters: [zipkin] # just zipkin for now - jaeger has a bug importing traces from OT Collector see https://github.com/jaegertracing/jaeger/issues/2300
 
