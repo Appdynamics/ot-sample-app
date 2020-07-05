@@ -15,7 +15,7 @@ app = Flask("bookings")
 
 @app.route("/booking", methods=["POST"])
 def make_booking():
-    pay_status = requests.post(os.getenv("PAY_SVC"), json={"card":request.json["card"]})
+    pay_status = requests.post(os.getenv("PAY_SVC"), json={"card": request.json["card"]})
     if not pay_status.ok:
         return 'bad request!', 400
 
@@ -23,8 +23,6 @@ def make_booking():
                                                            "name": request.json["name"]})
     if not rsv_status.ok:
         return 'bad request for rsv', 400
-
-    print(pay_status.json(), rsv_status.json())
 
     return jsonify({"payment": pay_status.json(), "reservation": rsv_status.json()})
 

@@ -1,0 +1,31 @@
+processors:
+  attributes/appdynamics:
+    actions:
+      - key: "appdynamics.tier"
+        from_attribute: "http.host"
+        action: insert
+      - key: "appdynamics.app"
+        value: bookings
+        action: insert
+      - key: "appdynamics.node"
+        value: "0"
+        action: insert
+
+receivers:
+  otlp:
+
+
+exporters:
+  logging:
+    loglevel: debug
+    sampling_initial: 5
+    sampling_thereafter: 5
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [attributes/appdynamics]
+      exporters: [logging]
+      #exporters: [zipkin] # just zipkin for now - jaeger has a bug importing traces from OT Collector see https://github.com/jaegertracing/jaeger/issues/2300
+
