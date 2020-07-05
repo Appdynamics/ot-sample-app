@@ -10,9 +10,13 @@ exporters:
     endpoint: "http://zipkin:9411/api/v2/spans"
     format: proto
 
+  logging:
+    loglevel: debug
+    sampling_initial: 5
+    sampling_thereafter: 5
+
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      #exporters: [zipkin, jaeger]
-      exporters: [zipkin] # just zipkin for now - jaeger has a bug importing traces from OT Collector see https://github.com/jaegertracing/jaeger/issues/2300
+      exporters: [zipkin, jaeger, logging] # just zipkin for now - jaeger has a bug importing traces from OT Collector see https://github.com/jaegertracing/jaeger/issues/2300

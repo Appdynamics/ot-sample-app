@@ -9,7 +9,6 @@ from opentelemetry.ext.jaeger import JaegerSpanExporter
 from opentelemetry.ext.otlp.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace.export import ConsoleSpanExporter
 
-
 app = Flask("reservations")
 
 
