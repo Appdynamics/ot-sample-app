@@ -9,15 +9,6 @@ idna==2.9
 itsdangerous==1.1.0
 Jinja2==2.11.2
 MarkupSafe==1.1.1
-opentelemetry-api==0.10b0
-opentelemetry-ext-flask==0.10b0
-opentelemetry-ext-jaeger==0.10b0
-opentelemetry-ext-otlp==0.10b0
-opentelemetry-ext-requests==0.10b0
-opentelemetry-ext-wsgi==0.10b0
-opentelemetry-instrumentation==0.10b0
-opentelemetry-proto==0.10b0
-opentelemetry-sdk==0.10b0
 protobuf==3.12.2
 requests==2.24.0
 six==1.15.0
