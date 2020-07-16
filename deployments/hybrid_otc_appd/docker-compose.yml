@@ -46,3 +46,11 @@ services:
       - "55680:55680"
     env_file:
       - setup.env
+
+  ingest:
+    build:
+        context: ../../ingest
+    container_name: ingest
+    entrypoint: [ "python", "app.py"]
+    env_file:
+      - setup.env
