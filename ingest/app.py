@@ -1,13 +1,18 @@
 from flask import Flask, jsonify, request
-import requests
-
+import json
+import pprint
 
 app = Flask("ingest")
 
 
-@app.route('/ingest')
+@app.route('/ingest', methods=["POST"])
 def hello_world():
-    print(jsonify(request.json))
+    body = json.loads(request.json['val'])
+    pprint.pprint(body['resource'])
+    for span in body['instrumentation_library_spans']:
+        pprint.pprint("---------------------")
+        pprint.pprint(span)
+    pprint.pprint("========================")
     return 'OK', 200
 
 
