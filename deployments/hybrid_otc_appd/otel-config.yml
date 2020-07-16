@@ -23,12 +23,12 @@ exporters:
     sampling_initial: 5
     sampling_thereafter: 5
   appdynamics:
-    endpoint: ingest:8080
+    endpoint: http://ingest:5000/ingest
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [attributes/appdynamics]
-      exporters: [logging, appdynamics]
+      exporters: [appdynamics]
 
