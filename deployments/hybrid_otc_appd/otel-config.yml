@@ -13,6 +13,8 @@ processors:
 
 receivers:
   otlp:
+    protocols:
+      grpc:
 
 
 exporters:
@@ -20,11 +22,13 @@ exporters:
     loglevel: debug
     sampling_initial: 5
     sampling_thereafter: 5
+  appdynamics:
+    endpoint: ingest:8080
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [attributes/appdynamics]
-      exporters: [logging]
+      exporters: [logging, appdynamics]
 
