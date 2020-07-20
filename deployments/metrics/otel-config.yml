@@ -15,12 +15,13 @@ receivers:
   otlp:
     protocols:
       grpc:
+  opencensus:
   hostmetrics:
-    collection_interval: 30s
+    collection_interval: 10s
     scrapers:
-      cpu:
-      memory:
-
+      process:
+        include:
+          match_type: "docker*"
 exporters:
   logging:
     loglevel: debug

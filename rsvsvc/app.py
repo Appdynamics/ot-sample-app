@@ -1,6 +1,6 @@
 from flask import jsonify, Flask, request
-import os
 import argparse
+import os
 
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
@@ -8,6 +8,7 @@ from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
 from opentelemetry.ext.jaeger import JaegerSpanExporter
 from opentelemetry.ext.otlp.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace.export import ConsoleSpanExporter
+
 
 app = Flask("reservations")
 
