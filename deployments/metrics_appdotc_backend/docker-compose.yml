@@ -2,14 +2,14 @@ version: '3'
 services:
   # Collector
   otel-collector:
-    image: otelcontribcol:latest
+    image: pavankrishnan/otelcontribcol:latest
     container_name: otel-collector
     command: ["--config=/etc/otel-config.yml"]
     volumes:
       - ./otel-config.yml:/etc/otel-config.yml
     ports:
       - "1777:1777"   # pprof extension
-      - "8887:8888"   # Prometheus metrics exposed by the agent
+      - "8887:8888"   # Prometheus metrics_appdotc_backend exposed by the agent
       - "14268"       # Jaeger receiver
       - "55678"       # OpenCensus receiver
       - "55679:55679" # zpages extension

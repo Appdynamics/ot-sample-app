@@ -1,0 +1,77 @@
+version: '3'
+services:
+  api:
+    build:
+        context: ../../bookapi
+    ports:
+      - "5001:5000"
+    container_name: api
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py","--exporter", "otc"]
+    env_file:
+      - setup.env
+
+  bookings:
+    build:
+        context: ../../booksvc
+    container_name: bookings
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py","--exporter", "otc"]
+    env_file:
+      - setup.env
+
+  payments:
+    build:
+        context: ../../paymentsvc
+    container_name: payments
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py" ,"--exporter", "otc"]
+    env_file:
+      - setup.env
+
+  reservations:
+    container_name: reservations
+    build:
+        context: ../../rsvsvc
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py", "--exporter", "otc"]
+    env_file:
+      - setup.env
+
+  # Collector
+  otel-collector:
+    image: pavankrishnan/otelcontribcol:latest
+    container_name: otel-collector
+    command: ["--config=/etc/otel-config.yml", "${OTELCOL_ARGS}"]
+    volumes:
+      - ./otel-config.yml:/etc/otel-config.yml
+    ports:
+      - 55678:55678       # receiving port
+      - 55680
+    depends_on:
+      - ingest
+    env_file:
+      - setup.env
+
+  ingest:
+    build:
+        context: ../../ingest
+    container_name: ingest
+    entrypoint: [ "python", "app.py"]
+    env_file:
+      - setup.env
+
+#  zipkin:
+#    image: openzipkin/zipkin:latest
+#    container_name: zipkin
+#    ports:
+#      - 9411:9411
+#
+#  jaeger:
+#    image: jaegertracing/all-in-one:latest
+#    container_name: jaeger
+#    ports:
+#        - 5775:5775/udp
+#        - 6831:6831/udp
+#        - 6832:6832/udp
+#        - 5778:5778
+#        - 16686:16686
+#        - 14268:14268
+#        - 9412:9411
+#        - 14250
