@@ -15,6 +15,12 @@ receivers:
   otlp:
     protocols:
       grpc:
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      process:
+        include:
+          match_type: "docker*"
 
 exporters:
   logging:
@@ -24,13 +30,20 @@ exporters:
   appdynamics:
     traces:
       http:
+        endpoint: http://ingest:5000/ingest
+    metrics:
+      http:
         endpoint: ingest:5000
     account: customer1
     access_key: key
 
+
 service:
   pipelines:
-    metrics:
+    traces:
       receivers: [otlp]
-      exporters: [appdynamics,logging]
+      exporters: [appdynamics]
 
+    metrics:
+      receivers: [hostmetrics]
+      exporters: [appdynamics]
