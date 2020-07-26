@@ -23,10 +23,6 @@ receivers:
           match_type: "docker*"
 
 exporters:
-  logging:
-    loglevel: debug
-    sampling_initial: 5
-    sampling_thereafter: 5
   appdynamics:
     traces:
       http:
