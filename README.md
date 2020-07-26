@@ -2,49 +2,22 @@
 
 Simple Reservation system with microservices api/booking/reservations/payments
 
-## Deployments
- 
-Plan is to include multiple deployment models
-  - Tracing OpenTelemetry with Jaeger / Metrics with Prometheus
-  - Tracing with AppDynamics / Metrics with Prometheus 
-  - Tracing with AppDynamics and with OpenTelemetry (Jaeger) / Metrics with Prometheus  [Hybrid]
-  - Tracing with AppDynamics and with OpenTelemetry (OTC) / Metrics with Prometheus [Hybrid]
 
 ## Usage
 
-### Jaeger OT model
+### Demo Setup
 
-- $ `cd deployments/ot && docker-compose up`
+`app traces/metrics -> ot collector -> mock ingestion service`
+
+- $ `cd deployments/demo && docker-compose up`
 - $  `curl -v http://localhost:5051/book/<string>`
-- $  Traces in Jaeger http://localhost:16686/
+- `notice traces and metrics from ingestion service on to console`
 - $ `docker-compose down` to tear down
 
-### AppDynamics Instrumentation
+### Console setup
 
-- $ `cd deployments/appd`
-- $ `edit appd.env` to edit appdynamics controller info
+- $ `cd deployments/console`
 - $ `docker-compose up`
 - $ `curl -v http://localhost:5051/book/<string>`
-- $ `docker-compose down` to tear down
-
-### Hybrid Instrumentation (Jaeger)
-
-AppD monitored services: api-service, payment-service
-OT monitored services: booking-service, reservations-service
-
-- $ `cd deployments/hybrid-jaeger`
-- $ `edit appd.env` to edit appdynamics controller info
-- $ `docker-compose up`
-- $ `curl -v http://localhost:5051/book/<string>`
-- $  Traces in Jaeger http://localhost:16686/ and AppDynamcis Controller
-- $ `docker-compose down` to tear down
-
-### Using OpenTelemetry Collector (Jaeger and Zipkin as exporters)
-
-- $ `cd deployments/hybrid-otc`
-- $ `edit appd.env` to edit appdynamics controller info
-- $ `docker-compose up`
-- $ `curl -v http://localhost:5051/book/<string>`
-- $  Traces in Jaeger http://localhost:16686/
-- $  Traces in Zipkin http://localhost:9411/zipkin/
+- $ `notice traces on console`
 - $ `docker-compose down` to tear down
