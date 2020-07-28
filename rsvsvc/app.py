@@ -3,7 +3,7 @@ import argparse
 import os
 
 from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace import TracerProvider, Resource
 from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
 from opentelemetry.ext.jaeger import JaegerSpanExporter
 from opentelemetry.ext.otlp.trace_exporter import OTLPSpanExporter
@@ -19,7 +19,10 @@ def reserve():
 
 
 if __name__ == '__main__':
-    trace.set_tracer_provider(TracerProvider())
+    trace.set_tracer_provider(TracerProvider(resource=Resource({"k8.cluster": "dev",
+                                                                "appd.application": "bookings",
+                                                                "appd.service": "reservations"
+                                                                })))
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--exporter", type=str, choices=["appd", "otc", "jaeger", "console"],
                         help="choose exporter", default="jaeger")
