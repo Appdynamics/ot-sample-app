@@ -9,7 +9,6 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	"strings"
 )
 
 type ExportService struct {
@@ -17,10 +16,11 @@ type ExportService struct {
 }
 
 func (a *ExportService) Export(ctx context.Context, request *pb.AppDExportTraceServiceRequest) (*pb.AppDExportTraceServiceResponse, error) {
-	marshaller := &jsonpb.Marshaler{}
-	var k strings.Builder
-	err := marshaller.Marshal(&k, request)
-	log.Printf(k.String())
+	marshaller := &jsonpb.Marshaler{Indent: "\t"}
+	s, err := marshaller.MarshalToString(request)
+	if err == nil {
+		log.Println(s)
+	}
 	return &pb.AppDExportTraceServiceResponse{}, err
 }
 
