@@ -44,7 +44,7 @@ services:
 
   # Collector
   otel-collector:
-    image: otelcontribcol:latest
+    image: pavankrishnan/otelcontribcol:latest
     container_name: otel-collector
     command: ["--config=/etc/otel-config.yml", "${OTELCOL_ARGS}"]
     volumes:
@@ -56,6 +56,8 @@ services:
       - ingest
     env_file:
       - setup.env
+    logging:
+      driver: none
 
   ingest:
     build:
@@ -66,6 +68,8 @@ services:
       - setup.env
     ports:
       - "5002:5000"
+    logging:
+      driver: none
 
   traces:
     build:
@@ -74,8 +78,3 @@ services:
     entrypoint: ["./server"]
     env_file:
       - setup.env
-
-  #test:
-  #  image: centos
-  #  container_name: test
-  #  entrypoint: ["ping", "localhost"]

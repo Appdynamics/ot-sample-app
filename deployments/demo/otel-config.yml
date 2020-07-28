@@ -1,15 +1,11 @@
 processors:
-  attributes/appdynamics:
-    actions:
-      - key: "appdynamics.tier"
-        from_attribute: "http.host"
-        action: insert
-      - key: "appdynamics.app"
-        value: bookings
-        action: insert
-      - key: "appdynamics.node"
-        value: "0"
-        action: insert
+  resource:
+    type: "host"
+    labels: {
+      "cloud.zone": "zone-1",
+      "k8s.cluster.name": "k8s-cluster",
+      "host.name": "k8s-node",
+    }
 
 receivers:
   otlp:
@@ -39,7 +35,9 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
+      processors: [resource]
       exporters: [appdynamics]
-    #metrics:
-    # receivers: [hostmetrics]
-    #  exporters: [appdynamics]
+    metrics:
+      receivers: [hostmetrics]
+      processors: [resource]
+      exporters: [appdynamics]
