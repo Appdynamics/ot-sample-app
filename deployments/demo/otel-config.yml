@@ -25,8 +25,9 @@ receivers:
 exporters:
   appdynamics:
     traces:
-      http:
-        endpoint: http://ingest:5000/ingest
+      grpc:
+        endpoint: traces:5000
+        insecure: true
     metrics:
       http:
         endpoint: ingest:5000
@@ -39,7 +40,6 @@ service:
     traces:
       receivers: [otlp]
       exporters: [appdynamics]
-
-    metrics:
-      receivers: [hostmetrics]
-      exporters: [appdynamics]
+    #metrics:
+    # receivers: [hostmetrics]
+    #  exporters: [appdynamics]
