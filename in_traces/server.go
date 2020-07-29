@@ -4,24 +4,26 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	pb "github.com/Appdynamics/opentelemetry-ingest/gen/go/pb/appdynamics/v1"
 	"github.com/golang/protobuf/jsonpb"
-	pb "github.com/pavankrish123/ot-svc/gen/go/pb/appdynamics/v1"
 	"google.golang.org/grpc"
 	"log"
 	"net"
 )
 
 type ExportService struct {
-	pb.AppDServiceServer
+	pb.SpanHandlerServer
 }
 
-func (a *ExportService) Export(ctx context.Context, request *pb.AppDExportTraceServiceRequest) (*pb.AppDExportTraceServiceResponse, error) {
+func (a *ExportService) HandleSpans(ctx context.Context, request *pb.SpansRequest) (*pb.SpansResponse, error) {
 	marshaller := &jsonpb.Marshaler{Indent: "\t"}
 	s, err := marshaller.MarshalToString(request)
 	if err == nil {
 		log.Println(s)
+	} else {
+		log.Print(err.Error())
 	}
-	return &pb.AppDExportTraceServiceResponse{}, err
+	return &pb.SpansResponse{}, err
 }
 
 func main() {
@@ -35,6 +37,6 @@ func main() {
 	var opts []grpc.ServerOption
 
 	grpcServer := grpc.NewServer(opts...)
-	pb.RegisterAppDServiceServer(grpcServer, &ExportService{})
+	pb.RegisterSpanHandlerServer(grpcServer, &ExportService{})
 	panic(grpcServer.Serve(lis))
 }
