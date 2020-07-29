@@ -56,6 +56,8 @@ services:
       - ingest
     env_file:
       - setup.env
+    logging:
+      driver: none
 
   ingest:
     build:
