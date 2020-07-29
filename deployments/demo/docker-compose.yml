@@ -1,12 +1,13 @@
-version: '3'
+version: "3"
 services:
   api:
     build:
-        context: ../../bookapi
+      context: ../../bookapi
     ports:
       - "5001:5000"
     container_name: api
-    entrypoint: ["opentelemetry-instrument",  "python", "app.py","--exporter", "otc"]
+    entrypoint:
+      ["opentelemetry-instrument", "python", "app.py", "--exporter", "jaeger"]
     env_file:
       - setup.env
     logging:
@@ -14,9 +15,9 @@ services:
 
   bookings:
     build:
-        context: ../../booksvc
+      context: ../../booksvc
     container_name: bookings
-    entrypoint: ["opentelemetry-instrument",  "python", "app.py","--exporter", "otc"]
+    entrypoint: ["node", "index.js"]
     env_file:
       - setup.env
     logging:
@@ -24,9 +25,10 @@ services:
 
   payments:
     build:
-        context: ../../paymentsvc
+      context: ../../paymentsvc
     container_name: payments
-    entrypoint: ["opentelemetry-instrument",  "python", "app.py" ,"--exporter", "otc"]
+    entrypoint:
+      ["opentelemetry-instrument", "python", "app.py", "--exporter", "jaeger"]
     env_file:
       - setup.env
     logging:
@@ -35,8 +37,9 @@ services:
   reservations:
     container_name: reservations
     build:
-        context: ../../rsvsvc
-    entrypoint: ["opentelemetry-instrument",  "python", "app.py", "--exporter", "otc"]
+      context: ../../rsvsvc
+    entrypoint:
+      ["opentelemetry-instrument", "python", "app.py", "--exporter", "jaeger"]
     env_file:
       - setup.env
     logging:
@@ -50,7 +53,7 @@ services:
     volumes:
       - ./otel-config.yml:/etc/otel-config.yml
     ports:
-      - 55678:55678       # receiving port
+      - 55678:55678 # receiving port
       - 55680
     depends_on:
       - ingest
@@ -61,9 +64,9 @@ services:
 
   ingest:
     build:
-        context: ../../ingest
+      context: ../../ingest
     container_name: ingest
-    entrypoint: [ "python", "app.py"]
+    entrypoint: ["python", "app.py"]
     env_file:
       - setup.env
     ports:
@@ -78,3 +81,17 @@ services:
     entrypoint: ["./server"]
     env_file:
       - setup.env
+    logging:
+      driver: none
+
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one
+    ports:
+      - 5775:5775/udp
+      - 6831:6831/udp
+      - 6832:6832/udp
+      - 5778:5778
+      - 16686:16686
+      - 14268:14268
+      - 9411:9411
