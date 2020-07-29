@@ -1,31 +1,31 @@
 version: '3'
 services:
   api:
-    image: ${DTR_SAMPLE_APP_REPO}/py-apigateway:latest
+    image: ${DTR_SAMPLE_APP_REPO}/py-apigateway:${TAG}
     build:
         context: bookapi
 
   bookings:
-    image: ${DTR_SAMPLE_APP_REPO}/py-bookings:latest
+    image: ${DTR_SAMPLE_APP_REPO}/py-bookings:${TAG}
     build:
         context: booksvc
 
   payments:
-    image: ${DTR_SAMPLE_APP_REPO}/py-payments:latest
+    image: ${DTR_SAMPLE_APP_REPO}/py-payments:${TAG}
     build:
         context: paymentsvc
 
   reservations:
-    image: ${DTR_SAMPLE_APP_REPO}/py-reservations:latest
+    image: ${DTR_SAMPLE_APP_REPO}/py-reservations:${TAG}
     build:
         context: rsvsvc
 
   mock-traces-ingest:
-    image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest:latest
+    image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest:${TAG}
     build:
       context: mock-traces-ingest
 
   mock-cms:
-    image: ${DTR_SAMPLE_APP_REPO}/mock-cms:latest
+    image: ${DTR_SAMPLE_APP_REPO}/mock-cms:${TAG}
     build:
       context: mock-cms
