@@ -1,7 +1,7 @@
 version: '3'
 services:
   api:
-    image: ${DTR_SAMPLE_APP_REPO}/py-apigateway:latest
+    image: ${DTR_SAMPLE_APP_REPO}/py-apigateway:${TAG}
     ports:
       - "5001:5000"
     container_name: py-api-gateway
@@ -12,7 +12,7 @@ services:
       driver: none
 
   bookings:
-    image: ${DTR_SAMPLE_APP_REPO}/py-bookings:latest
+    image: ${DTR_SAMPLE_APP_REPO}/py-bookings:${TAG}
     container_name: py-bookings
     entrypoint: ["opentelemetry-instrument",  "python", "app.py","--exporter", "otc"]
     env_file:
@@ -21,7 +21,7 @@ services:
       driver: none
 
   payments:
-    image: ${DTR_SAMPLE_APP_REPO}/py-payments:latest
+    image: ${DTR_SAMPLE_APP_REPO}/py-payments:${TAG}
     container_name: py-payments
     entrypoint: ["opentelemetry-instrument",  "python", "app.py" ,"--exporter", "otc"]
     env_file:
@@ -30,7 +30,7 @@ services:
       driver: none
 
   reservations:
-    image: ${DTR_SAMPLE_APP_REPO}/py-reservations:latest
+    image: ${DTR_SAMPLE_APP_REPO}/py-reservations:${TAG}
     container_name: py-reservations
     entrypoint: ["opentelemetry-instrument",  "python", "app.py", "--exporter", "otc"]
     env_file:
@@ -57,7 +57,7 @@ services:
       driver: none
 
   mock-cms:
-    image: ${DTR_SAMPLE_APP_REPO}/mock-cms:latest
+    image: ${DTR_SAMPLE_APP_REPO}/mock-cms:${TAG}
     container_name: mock-cms
     entrypoint: [ "python", "app.py"]
     env_file:
@@ -68,7 +68,7 @@ services:
       driver: none
 
   mock-traces-ingest:
-    image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest:latest
+    image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest:${TAG}
     container_name: mock-traces-ingest
     entrypoint: ["./server"]
     env_file:
