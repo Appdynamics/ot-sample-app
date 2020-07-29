@@ -2,8 +2,6 @@ version: '3'
 services:
   api:
     image: ${DTR_SAMPLE_APP_REPO}/py-apigateway:latest
-    build:
-        context: ../../bookapi
     ports:
       - "5001:5000"
     container_name: py-api-gateway
@@ -15,8 +13,6 @@ services:
 
   bookings:
     image: ${DTR_SAMPLE_APP_REPO}/py-bookings:latest
-    build:
-        context: ../../booksvc
     container_name: py-bookings
     entrypoint: ["opentelemetry-instrument",  "python", "app.py","--exporter", "otc"]
     env_file:
@@ -26,8 +22,6 @@ services:
 
   payments:
     image: ${DTR_SAMPLE_APP_REPO}/py-payments:latest
-    build:
-        context: ../../paymentsvc
     container_name: py-payments
     entrypoint: ["opentelemetry-instrument",  "python", "app.py" ,"--exporter", "otc"]
     env_file:
@@ -38,8 +32,6 @@ services:
   reservations:
     image: ${DTR_SAMPLE_APP_REPO}/py-reservations:latest
     container_name: py-reservations
-    build:
-        context: ../../rsvsvc
     entrypoint: ["opentelemetry-instrument",  "python", "app.py", "--exporter", "otc"]
     env_file:
       - setup.env
@@ -66,8 +58,6 @@ services:
 
   mock-cms:
     image: ${DTR_SAMPLE_APP_REPO}/mock-cms:latest
-    build:
-        context: ../../ingest
     container_name: mock-cms
     entrypoint: [ "python", "app.py"]
     env_file:
@@ -79,8 +69,6 @@ services:
 
   mock-traces-ingest:
     image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest:latest
-    build:
-      context: ../../in_traces
     container_name: mock-traces-ingest
     entrypoint: ["./server"]
     env_file:
