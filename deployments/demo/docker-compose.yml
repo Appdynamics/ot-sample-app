@@ -44,7 +44,7 @@ services:
 
   # Collector
   otel-collector:
-    image: dtr.corp.appdynamics.com/pavan.krishna/otelcontribcol:latest
+    image: otelcontribcol:latest
     container_name: otel-collector
     command: ["--config=/etc/otel-config.yml", "${OTELCOL_ARGS}"]
     volumes:
@@ -56,8 +56,6 @@ services:
       - ingest
     env_file:
       - setup.env
-    logging:
-      driver: none
 
   ingest:
     build:
