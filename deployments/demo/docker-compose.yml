@@ -73,3 +73,11 @@ services:
     entrypoint: ["./server"]
     env_file:
       - setup.env
+
+  # Zipkin
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+
