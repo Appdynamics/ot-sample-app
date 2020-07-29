@@ -30,13 +30,20 @@ exporters:
     account: customer1
     access_key: key
 
+  jaeger:
+    endpoint: jaeger:14250
+    insecure: true
+
+  zipkin:
+    endpoint: "http://zipkin:9411/api/v2/spans"
+    format: proto
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [resource]
-      exporters: [appdynamics]
+      exporters: [appdynamics,zipkin]
     metrics:
       receivers: [hostmetrics]
       processors: [resource]
