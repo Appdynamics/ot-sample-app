@@ -1,38 +1,42 @@
 version: '3'
 services:
   api:
-    build:
-        context: ../../bookapi
+    image: ${DTR_SAMPLE_APP_REPO}/py-apigateway:latest
     ports:
       - "5001:5000"
-    container_name: api
+    container_name: j-api-gateway
     entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
       - setup.env
+    logging:
+      driver: none
 
   bookings:
-    build:
-        context: ../../booksvc
-    container_name: bookings
+    image: ${DTR_SAMPLE_APP_REPO}/py-bookings:latest
+    container_name: j-bookings
     entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
       - setup.env
+    logging:
+      driver: none
 
   payments:
-    build:
-        context: ../../paymentsvc
-    container_name: payments
+    image: ${DTR_SAMPLE_APP_REPO}/py-payments:latest
+    container_name: j-payments
     entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
       - setup.env
+    logging:
+      driver: none
 
   reservations:
-    container_name: reservations
-    build:
-        context: ../../rsvsvc
+    image: ${DTR_SAMPLE_APP_REPO}/py-reservations:latest
+    container_name: j-reservations
     entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
       - setup.env
+    logging:
+      driver: none
 
   jaeger:
       container_name: jaeger

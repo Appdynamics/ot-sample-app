@@ -1,11 +1,12 @@
 version: '3'
 services:
   api:
+    image: ${DTR_SAMPLE_APP_REPO}/py-apigateway:latest
     build:
         context: ../../bookapi
     ports:
       - "5001:5000"
-    container_name: api
+    container_name: py-api-gateway
     entrypoint: ["opentelemetry-instrument",  "python", "app.py","--exporter", "otc"]
     env_file:
       - setup.env
@@ -13,9 +14,10 @@ services:
       driver: none
 
   bookings:
+    image: ${DTR_SAMPLE_APP_REPO}/py-bookings:latest
     build:
         context: ../../booksvc
-    container_name: bookings
+    container_name: py-bookings
     entrypoint: ["opentelemetry-instrument",  "python", "app.py","--exporter", "otc"]
     env_file:
       - setup.env
@@ -23,9 +25,10 @@ services:
       driver: none
 
   payments:
+    image: ${DTR_SAMPLE_APP_REPO}/py-payments:latest
     build:
         context: ../../paymentsvc
-    container_name: payments
+    container_name: py-payments
     entrypoint: ["opentelemetry-instrument",  "python", "app.py" ,"--exporter", "otc"]
     env_file:
       - setup.env
@@ -33,7 +36,8 @@ services:
       driver: none
 
   reservations:
-    container_name: reservations
+    image: ${DTR_SAMPLE_APP_REPO}/py-reservations:latest
+    container_name: py-reservations
     build:
         context: ../../rsvsvc
     entrypoint: ["opentelemetry-instrument",  "python", "app.py", "--exporter", "otc"]
@@ -44,7 +48,7 @@ services:
 
   # Collector
   otel-collector:
-    image: dtr.corp.appdynamics.com/pavan.krishna/otelcontribcol:latest
+    image: ${DTR_OT_REPO}/otelcontribcol:latest
     container_name: otel-collector
     command: ["--config=/etc/otel-config.yml", "${OTELCOL_ARGS}"]
     volumes:
@@ -53,16 +57,18 @@ services:
       - 55678:55678       # receiving port
       - 55680
     depends_on:
-      - ingest
+      - mock-cms
+      - mock-traces-ingest
     env_file:
       - setup.env
     logging:
       driver: none
 
-  ingest:
+  mock-cms:
+    image: ${DTR_SAMPLE_APP_REPO}/mock-cms:latest
     build:
         context: ../../ingest
-    container_name: ingest
+    container_name: mock-cms
     entrypoint: [ "python", "app.py"]
     env_file:
       - setup.env
@@ -71,10 +77,11 @@ services:
     logging:
       driver: none
 
-  traces:
+  mock-traces-ingest:
+    image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest:latest
     build:
       context: ../../in_traces
-    container_name: traces
+    container_name: mock-traces-ingest
     entrypoint: ["./server"]
     env_file:
       - setup.env

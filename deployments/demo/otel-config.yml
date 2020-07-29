@@ -22,11 +22,11 @@ exporters:
   appdynamics:
     traces:
       grpc:
-        endpoint: traces:5000
+        endpoint: mock-traces-ingest:5000
         insecure: true
     metrics:
       http:
-        endpoint: ingest:5000
+        endpoint: mock-cms:5000
     account: customer1
     access_key: key
 
