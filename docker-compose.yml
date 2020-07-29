@@ -3,29 +3,29 @@ services:
   api:
     image: ${DTR_SAMPLE_APP_REPO}/py-apigateway:latest
     build:
-        context: ../../bookapi
+        context: bookapi
 
   bookings:
     image: ${DTR_SAMPLE_APP_REPO}/py-bookings:latest
     build:
-        context: ../../booksvc
+        context: booksvc
 
   payments:
     image: ${DTR_SAMPLE_APP_REPO}/py-payments:latest
     build:
-        context: ../../paymentsvc
+        context: paymentsvc
 
   reservations:
     image: ${DTR_SAMPLE_APP_REPO}/py-reservations:latest
     build:
-        context: ../../rsvsvc
+        context: rsvsvc
 
   mock-traces-ingest:
     image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest:latest
     build:
-      context: ../../mock-traces-ingest
+      context: mock-traces-ingest
 
   mock-cms:
     image: ${DTR_SAMPLE_APP_REPO}/mock-cms:latest
     build:
-      context: ../../mock-cms
+      context: mock-cms
