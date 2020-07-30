@@ -6,7 +6,7 @@ services:
         context: bookapi
 
   bookings:
-    image: ${DTR_SAMPLE_APP_REPO}/py-bookings:${TAG}
+    image: ${DTR_SAMPLE_APP_REPO}/node-bookings:${TAG}
     build:
         context: booksvc
 

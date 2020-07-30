@@ -11,9 +11,9 @@ appd.profile({
       controllerSslEnabled: false,
       accountName: 'customer1',
       accountAccessKey: 'SJ5b2m7d1$354',
-      applicationName: 'otel_demo',
-      tierName: 'otel_demo_tier',
-      nodeName: 'otel_demo_node',
+      applicationName: 'bookings',
+      tierName: 'booking',
+      nodeName: '0',
       debug: true,
       opentelemetry: {
         url: process.env.OTC_HOST

@@ -12,7 +12,7 @@ services:
       driver: none
 
   bookings:
-    image: dtr.corp.appdynamics.com/sidartha.gracias/node-booksvc:latest
+    image: ${DTR_SAMPLE_APP_REPO}/node-bookings:${TAG}
     container_name: node-bookings
     entrypoint: ["node", "index.js"]
     env_file:
