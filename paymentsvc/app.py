@@ -20,7 +20,8 @@ def process_card():
 if __name__ == '__main__':
     trace.set_tracer_provider(TracerProvider(resource=Resource({"k8.cluster": "dev",
                                                                 "appd.application": "bookings",
-                                                                "appd.service": "payments"
+                                                                "appd.service": "payments",
+                                                                "service.name": "payments"
                                                                 })))
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--exporter", type=str, choices=["appd", "otc", "jaeger", "jaeger"],

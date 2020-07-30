@@ -21,7 +21,8 @@ def reserve():
 if __name__ == '__main__':
     trace.set_tracer_provider(TracerProvider(resource=Resource({"k8.cluster": "dev",
                                                                 "appd.application": "bookings",
-                                                                "appd.service": "reservations"
+                                                                "appd.service": "reservations",
+                                                                "service.name": "reservations"
                                                                 })))
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--exporter", type=str, choices=["appd", "otc", "jaeger", "jaeger"],
