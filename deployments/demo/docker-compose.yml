@@ -12,9 +12,9 @@ services:
       driver: none
 
   bookings:
-    image: ${DTR_SAMPLE_APP_REPO}/py-bookings:${TAG}
-    container_name: py-bookings
-    entrypoint: ["opentelemetry-instrument",  "python", "app.py","--exporter", "otc"]
+    image: dtr.corp.appdynamics.com/sidartha.gracias/node-booksvc:latest
+    container_name: node-bookings
+    entrypoint: ["node", "index.js"]
     env_file:
       - setup.env
     logging:
