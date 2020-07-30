@@ -14,10 +14,10 @@ Simple Reservation system with microservices api/booking/reservations/payments
 - `notice traces and metrics from ingestion service on to console`
 - $ `docker-compose down` to tear down
 
-### Console setup
+### Jaeger demo setup
 
 - $ `cd deployments/console`
 - $ `docker-compose up`
 - $ `curl -v http://localhost:5051/book/<string>`
-- $ `notice traces on console`
+- $ `notice traces on Jaeger`
 - $ `docker-compose down` to tear down

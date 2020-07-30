@@ -2,10 +2,10 @@ from flask import Flask, jsonify, request
 import json
 import pprint
 
-app = Flask("ingest")
+app = Flask("mock-cms")
 
 
-@app.route('/ingest', methods=["POST"])
+@app.route('/mock-cms', methods=["POST"])
 def hello_world():
     pprint.pprint(json.loads(request.data))
     pprint.pprint("\n\n")
