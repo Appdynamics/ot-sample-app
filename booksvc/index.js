@@ -4,6 +4,36 @@ const express = require('express'),
   expressPino = require('express-pino-logger'),
   bodyParser = require('body-parser');
 
+var appd = require("appdynamics");
+appd.profile({
+      controllerHostName: 'apmqe-docker-03.corp.appdynamics.com',
+      controllerPort: 8080,
+      controllerSslEnabled: false,
+      accountName: 'customer1',
+      accountAccessKey: 'SJ5b2m7d1$354',
+      applicationName: 'otel_demo',
+      tierName: 'otel_demo_tier',
+      nodeName: 'otel_demo_node',
+      debug: true,
+      opentelemetry: {
+        url: process.env.OTC_HOST
+      },
+      libagent: true,
+      'logging': {
+              'logfiles': [
+                    {
+                          'filename': 's_%N.log',
+                          'level': 'DEBUG'
+                    },
+                    {
+                          'filename': 'proxy_%N.protolog',
+                          'level': 'TRACE',
+                          'channel': 'protobuf'
+                    }
+                    ]           
+                }
+});
+
 const logger = pino({
   level: process.env.LOG_LEVEL || 'info'
 });
