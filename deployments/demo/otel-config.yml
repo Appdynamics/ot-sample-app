@@ -5,6 +5,7 @@ processors:
       "cloud.zone": "zone-1",
       "k8s.cluster.name": "k8s-cluster",
       "host.name": "k8s-node",
+      "appdynamics.application": "ticket-hub"
     }
 
 receivers:
