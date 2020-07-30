@@ -20,8 +20,7 @@ def reserve():
 
 if __name__ == '__main__':
     trace.set_tracer_provider(TracerProvider(resource=Resource({"k8.cluster": "dev",
-                                                                "appd.application": "bookings",
-                                                                "appd.service": "reservations",
+                                                                "appdynamics.service": "reservations",
                                                                 "service.name": "reservations"
                                                                 })))
     parser = argparse.ArgumentParser()
