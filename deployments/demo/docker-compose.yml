@@ -12,8 +12,7 @@ services:
       driver: none
 
   bookings:
-    build:
-      context: ../../booksvc
+    image: dtr.corp.appdynamics.com/sidartha.gracias/node-booksvc:latest
     container_name: node-bookings
     entrypoint: ["node", "index.js"]
     env_file:
