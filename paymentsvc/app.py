@@ -23,7 +23,7 @@ if __name__ == '__main__':
                                                                 "appd.service": "payments"
                                                                 })))
     parser = argparse.ArgumentParser()
-    parser.add_argument("-e", "--exporter", type=str, choices=["appd", "otc", "jaeger", "console"],
+    parser.add_argument("-e", "--exporter", type=str, choices=["appd", "otc", "jaeger", "jaeger"],
                         help="choose exporter", default="jaeger")
     args = parser.parse_args()
 
