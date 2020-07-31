@@ -12,12 +12,6 @@ receivers:
   otlp:
     protocols:
       grpc:
-  hostmetrics:
-    collection_interval: 10s
-    scrapers:
-      process:
-        include:
-          match_type: "docker*"
 
 exporters:
   appdynamics:
@@ -25,16 +19,6 @@ exporters:
       grpc:
         endpoint: mock-traces-ingest:5000
         insecure: true
-    metrics:
-      http:
-        endpoint: mock-cms:5000
-    account: customer1
-    access_key: key
-
-  jaeger:
-    endpoint: jaeger:14250
-    insecure: true
-
   zipkin:
     endpoint: "http://zipkin:9411/api/v2/spans"
     format: proto
@@ -45,7 +29,3 @@ service:
       receivers: [otlp]
       processors: [resource]
       exporters: [appdynamics,zipkin]
-    metrics:
-      receivers: [hostmetrics]
-      processors: [resource]
-      exporters: [appdynamics]
