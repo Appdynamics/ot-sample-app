@@ -24,9 +24,8 @@ services:
     env_file:
       - setup.env
     ports:
-      - "5002:5000"
-    logging:
-      driver: none
+      - "5000:5000"
+
 
 
 
