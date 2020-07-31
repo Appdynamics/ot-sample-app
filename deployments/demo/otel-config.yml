@@ -1,12 +1,18 @@
 processors:
   resource:
-    type: "host"
-    labels: {
-      "cloud.zone": "zone-1",
-      "k8s.cluster.name": "k8s-cluster",
-      "host.name": "k8s-node",
-      "appdynamics.application": "ticket-hub"
-    }
+    attributes:
+    - key: cloud.zone
+      value: "zone-1"
+      action: upsert
+    - key: host.name
+      value: "sample-container"
+      action: upsert
+    - key: appdynamics.application
+      action: upsert
+      value: "ticket-hub"
+    - key: appdynamics.service
+      from_attribute: service.name
+      action: upsert
 
 receivers:
   otlp:
