@@ -11,9 +11,9 @@ services:
         context: booksvc
 
   payments:
-    image: ${DTR_SAMPLE_APP_REPO}/py-payments:${TAG}
+    image: ${DTR_SAMPLE_APP_REPO}/dotnet-payments:${TAG}
     build:
-        context: paymentsvc
+        context: PaymentService
 
   reservations:
     image: ${DTR_SAMPLE_APP_REPO}/py-reservations:${TAG}
