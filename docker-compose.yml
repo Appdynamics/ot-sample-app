@@ -15,6 +15,11 @@ services:
     build:
         context: PaymentService
 
+  py-payments:
+    image: ${DTR_SAMPLE_APP_REPO}/py-payments:${TAG}
+    build:
+        context: payments
+
   reservations:
     image: ${DTR_SAMPLE_APP_REPO}/py-reservations:${TAG}
     build:
