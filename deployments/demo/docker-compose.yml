@@ -21,13 +21,22 @@ services:
       driver: none
 
   payments:
-    image: ${DTR_SAMPLE_APP_REPO}/py-payments:${TAG}
-    container_name: py-payments
-    entrypoint: ["opentelemetry-instrument",  "python", "app.py" ,"--exporter", "otc"]
+    image: dtr.corp.appdynamics.com/rhynier.myburgh/dotnet-payments
+    container_name: dotnet-payments
+    entrypoint: ["dotnet",  "PaymentService.dll", "--exporter", "otc"]
     env_file:
       - setup.env
     logging:
       driver: none
+
+  # payments:
+  #   image: ${DTR_SAMPLE_APP_REPO}/py-payments:${TAG}
+  #   container_name: py-payments
+  #   entrypoint: ["opentelemetry-instrument",  "python", "app.py" ,"--exporter", "otc"]
+  #   env_file:
+  #     - setup.env
+  #   logging:
+  #     driver: none
 
   reservations:
     image: ${DTR_SAMPLE_APP_REPO}/py-reservations:${TAG}
