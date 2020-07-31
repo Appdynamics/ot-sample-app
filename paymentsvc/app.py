@@ -19,7 +19,6 @@ def process_card():
 
 if __name__ == '__main__':
     trace.set_tracer_provider(TracerProvider(resource=Resource({"k8.cluster": "dev",
-                                                                "appdynamics.service": "payments",
                                                                 "service.name": "payments"
                                                                 })))
     parser = argparse.ArgumentParser()

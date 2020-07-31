@@ -14,8 +14,6 @@ services:
       - mock-cms
     env_file:
       - setup.env
-    logging:
-      driver: none
 
   mock-cms:
     image: ${DTR_SAMPLE_APP_REPO}/mock-cms:${TAG}
