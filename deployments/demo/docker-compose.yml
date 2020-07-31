@@ -49,21 +49,9 @@ services:
       - 55678:55678       # receiving port
       - 55680
     depends_on:
-      - mock-cms
       - mock-traces-ingest
     env_file:
       - setup.env
-    logging:
-      driver: none
-
-  mock-cms:
-    image: ${DTR_SAMPLE_APP_REPO}/mock-cms:${TAG}
-    container_name: mock-cms
-    entrypoint: [ "python", "app.py"]
-    env_file:
-      - setup.env
-    ports:
-      - "5002:5000"
     logging:
       driver: none
 

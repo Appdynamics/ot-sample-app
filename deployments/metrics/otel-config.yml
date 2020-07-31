@@ -1,0 +1,32 @@
+processors:
+  resource:
+    type: "host"
+    labels: {
+      "cloud.zone": "zone-1",
+      "k8s.cluster.name": "k8s-cluster",
+      "host.name": "k8s-node"
+    }
+
+receivers:
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      process:
+        include:
+          match_type: "docker*"
+
+exporters:
+  appdynamics:
+    metrics:
+      http:
+        endpoint: mock-cms:5002
+    account: customer1
+    access_key: key
+
+
+service:
+  pipelines:
+    metrics:
+      receivers: [hostmetrics]
+      processors: [resource]
+      exporters: [appdynamics]
