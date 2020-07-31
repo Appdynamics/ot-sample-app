@@ -19,7 +19,7 @@ exporters:
   appdynamics:
     metrics:
       http:
-        endpoint: mock-cms:5002
+        endpoint: mock-cms:5000
     account: customer1
     access_key: key
 
