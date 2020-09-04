@@ -23,7 +23,7 @@ exporters:
   appdynamics:
     traces:
       grpc:
-        endpoint: mock-traces-ingest:5000
+        endpoint: otis-mock-injest:80
         insecure: true
   zipkin:
     endpoint: "http://zipkin:9411/api/v2/spans"

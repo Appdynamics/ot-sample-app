@@ -58,16 +58,23 @@ services:
       - 55678:55678       # receiving port
       - 55680
     depends_on:
-      - mock-traces-ingest
+      - otismockinjestservice
+      #- mock-traces-ingest
     env_file:
       - setup.env
     logging:
       driver: none
 
-  mock-traces-ingest:
-    image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest:${TAG}
-    container_name: mock-traces-ingest
-    entrypoint: ["./server"]
+  #mock-traces-ingest:
+  #  image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest:${TAG}
+  #  container_name: mock-traces-ingest
+  #  entrypoint: ["./server"]
+  #  env_file:
+  #    - setup.env
+
+  otismockinjestservice:
+    image: dtr.corp.appdynamics.com/rhynier.myburgh/otismockinjestservice:${TAG}
+    container_name: otis-mock-injest
     env_file:
       - setup.env
 
