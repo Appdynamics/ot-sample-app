@@ -4,33 +4,19 @@ services:
     image: ${DTR_SAMPLE_APP_REPO}/py-apigateway:${TAG}
     build:
         context: bookapi
-
-  bookings:
-    image: ${DTR_SAMPLE_APP_REPO}/node-bookings:${TAG}
-    build:
-        context: booksvc
-
-  payments:
-    image: ${DTR_SAMPLE_APP_REPO}/dotnet-payments:${TAG}
-    build:
-        context: PaymentService
-
+        
   py-payments:
     image: ${DTR_SAMPLE_APP_REPO}/py-payments:${TAG}
     build:
-        context: payments
+        context: paymentsvc
 
   reservations:
     image: ${DTR_SAMPLE_APP_REPO}/py-reservations:${TAG}
     build:
         context: rsvsvc
 
-  mock-traces-ingest:
+  ingest:
     image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest:${TAG}
     build:
-      context: mock-traces-ingest
+      context: ingest
 
-  mock-cms:
-    image: ${DTR_SAMPLE_APP_REPO}/mock-cms:${TAG}
-    build:
-      context: mock-cms
