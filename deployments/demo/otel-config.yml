@@ -20,18 +20,13 @@ receivers:
       grpc:
 
 exporters:
-  appdynamics:
-    traces:
-      grpc:
-        endpoint: mock-traces-ingest:5000
-        insecure: true
-  zipkin:
-    endpoint: "http://zipkin:9411/api/v2/spans"
-    format: proto
+  otlp:
+    endpoint: ingest:5000
+    insecure: true
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [resource]
-      exporters: [appdynamics,zipkin]
+      exporters: [otlp]
