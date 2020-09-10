@@ -1,3 +1,6 @@
 [submodule "ingest/internal/opentelemetry-proto"]
 	path = ingest/internal/opentelemetry-proto
 	url = https://github.com/open-telemetry/opentelemetry-proto/
+[submodule "OtisMockInjestService/opentelemetry-proto"]
+	path = OtisMockInjestService/opentelemetry-proto
+	url = https://github.com/open-telemetry/opentelemetry-proto/

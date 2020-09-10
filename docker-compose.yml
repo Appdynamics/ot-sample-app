@@ -20,3 +20,8 @@ services:
     build:
       context: ingest
 
+  otismockinjestservice:
+    image: ${DTR_SAMPLE_APP_REPO}/otismockinjestservice:${TAG}
+    build:
+      context: otismockinjestservice
+

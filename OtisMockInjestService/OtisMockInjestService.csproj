@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>2d8641d1-6f8e-43e6-865e-cfd2ab27dc46</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.31.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="opentelemetry-proto\opentelemetry\proto\collector\trace\v1\trace_service.proto" ProtoRoot="opentelemetry-proto" />
+    <Protobuf Include="opentelemetry-proto\opentelemetry\proto\common\v1\common.proto" ProtoRoot="opentelemetry-proto" />
+    <Protobuf Include="opentelemetry-proto\opentelemetry\proto\resource\v1\resource.proto" ProtoRoot="opentelemetry-proto" />
+    <Protobuf Include="opentelemetry-proto\opentelemetry\proto\trace\v1\trace.proto" ProtoRoot="opentelemetry-proto" />
+  </ItemGroup>
+</Project>

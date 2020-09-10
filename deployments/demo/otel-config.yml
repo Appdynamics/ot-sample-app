@@ -21,7 +21,7 @@ receivers:
 
 exporters:
   otlp:
-    endpoint: ingest:5000
+    endpoint: ingest:80
     insecure: true
 
 service:

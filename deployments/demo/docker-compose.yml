@@ -60,12 +60,16 @@ services:
     env_file:
       - setup.env
 
-  ingest:
-    image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest:latest
+  otismockinjestservice:
+    image: dtr.corp.appdynamics.com/rhynier.myburgh/otismockinjestservice:latest
     container_name: ingest
-    entrypoint: ["./server"]
-    env_file:
-      - setup.env
+
+#  ingest:
+#    image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest:latest
+#    container_name: ingest
+#    entrypoint: ["./server"]
+#    env_file:
+#      - setup.env
 
   # Zipkin
   #zipkin:
