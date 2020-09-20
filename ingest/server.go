@@ -6,16 +6,17 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/jsonpb"
 	"google.golang.org/grpc"
-	pb "ingest/internal/opentelemetry-proto-gen/collector/trace/v1"
+	mpb "ingest/internal/opentelemetry-proto-gen/collector/metrics/v1"
+	tpb "ingest/internal/opentelemetry-proto-gen/collector/trace/v1"
 	"log"
 	"net"
 )
 
-type ExportService struct {
-	pb.TraceServiceServer
+type TraceExportService struct {
+	tpb.TraceServiceServer
 }
 
-func (a *ExportService) Export(ctx context.Context, request *pb.ExportTraceServiceRequest) (*pb.ExportTraceServiceResponse, error) {
+func (a *TraceExportService) Export(_ context.Context, request *tpb.ExportTraceServiceRequest) (*tpb.ExportTraceServiceResponse, error) {
 	marshaller := &jsonpb.Marshaler{Indent: "\t"}
 	s, err := marshaller.MarshalToString(request)
 	if err == nil {
@@ -23,7 +24,22 @@ func (a *ExportService) Export(ctx context.Context, request *pb.ExportTraceServi
 	} else {
 		log.Print(err.Error())
 	}
-	return &pb.ExportTraceServiceResponse{}, err
+	return &tpb.ExportTraceServiceResponse{}, err
+}
+
+type MetricExportService struct {
+	mpb.MetricsServiceServer
+}
+
+func (b *MetricExportService) Export(_ context.Context, request *mpb.ExportMetricsServiceRequest) (*mpb.ExportMetricsServiceResponse, error) {
+	marshaller := &jsonpb.Marshaler{Indent: "\t"}
+	s, err := marshaller.MarshalToString(request)
+	if err == nil {
+		log.Println(s)
+	} else {
+		log.Print(err.Error())
+	}
+	return &mpb.ExportMetricsServiceResponse{}, err
 }
 
 func main() {
@@ -37,6 +53,7 @@ func main() {
 	var opts []grpc.ServerOption
 
 	grpcServer := grpc.NewServer(opts...)
-	pb.RegisterTraceServiceServer(grpcServer, &ExportService{})
+	tpb.RegisterTraceServiceServer(grpcServer, &TraceExportService{})
+	mpb.RegisterMetricsServiceServer(grpcServer, &MetricExportService{})
 	panic(grpcServer.Serve(lis))
 }
