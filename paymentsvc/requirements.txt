@@ -22,7 +22,6 @@ opentelemetry-instrumentation==0.11b0
 opentelemetry-ext-wsgi==0.11b0
 opentelemetry-ext-flask==0.11b0
 opentelemetry-ext-requests==0.11b0
-opentelemetry-ext-jaeger==0.11b0
 opentelemetry-proto==0.11b0
 opentelemetry-ext-otlp==0.11b0
 opentelemetry-ext-wsgi==0.11b0
