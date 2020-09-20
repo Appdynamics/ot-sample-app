@@ -1,27 +1,82 @@
 version: '3'
 services:
   api:
-    image: ${DTR_SAMPLE_APP_REPO}/py-apigateway:${TAG}
+    image: ${DTR_SAMPLE_APP_REPO}/py-apigateway
     build:
-        context: bookapi
-        
-  py-payments:
-    image: ${DTR_SAMPLE_APP_REPO}/py-payments:${TAG}
-    build:
-        context: paymentsvc
+      context: bookapi
+    ports:
+      - "5001:5000"
+    container_name: py-api-gateway
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py","--exporter", "otc"]
+    env_file:
+      - setup.env
+    logging:
+      driver: none
 
-  py-bookings:
-    image: ${DTR_SAMPLE_APP_REPO}/py-bookings:${TAG}
+  bookings:
+    image: ${DTR_SAMPLE_APP_REPO}/py-bookings
     build:
-        context: booksvc
+      context: booksvc
+    container_name: py-bookings
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py","--exporter", "otc"]
+    env_file:
+      - setup.env
+    logging:
+      driver: none
+
+  payments:
+    image: ${DTR_SAMPLE_APP_REPO}/py-payments
+    build:
+      context: paymentsvc
+    container_name: py-payments
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py" ,"--exporter", "otc"]
+    env_file:
+      - setup.env
+    logging:
+      driver: none
 
   reservations:
-    image: ${DTR_SAMPLE_APP_REPO}/py-reservations:${TAG}
+    image: ${DTR_SAMPLE_APP_REPO}/py-reservations
     build:
-        context: rsvsvc
+      context: rsvsvc
+    container_name: py-reservations
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py", "--exporter", "otc"]
+    env_file:
+      - setup.env
+    logging:
+      driver: none
+
+  # Collector
+  otel-collector:
+    image: otel/opentelemetry-collector:0.9.0
+    container_name: otel-collector
+    command: ["--config=/etc/otel-config.yml", "${OTELCOL_ARGS}"]
+    volumes:
+      - ./otel-config.yml:/etc/otel-config.yml
+    ports:
+      - 55678:55678       # receiving port
+      - 55680
+    env_file:
+      - setup.env
 
   ingest:
-    image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest:${TAG}
+    image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest
     build:
       context: ingest
+    container_name: ingest
+    entrypoint: ["./server"]
+    env_file:
+      - setup.env
+
+  # jaeger:
+  #     container_name: jaeger
+  #     image: jaegertracing/all-in-one
+  #     ports:
+  #         - 5775:5775/udp
+  #         - 6831:6831/udp
+  #         - 6832:6832/udp
+  #         - 5778:5778
+  #         - 16686:16686
+  #         - 14268:14268
+  #         - 9411:9411
 
