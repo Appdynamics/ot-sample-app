@@ -7,9 +7,18 @@ exporters:
   otlp:
     endpoint: ingest:5000
     insecure: true
+  hostmetrics:
+  collection_interval: 10s
+  scrapers:
+    cpu:
+    memory:
+    disk:
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
+      exporters: [otlp]
+    metrics:
+      receivers: [hostmetrics]
       exporters: [otlp]
