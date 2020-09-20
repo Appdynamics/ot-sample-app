@@ -10,6 +10,11 @@ services:
     build:
         context: paymentsvc
 
+  py-bookings:
+    image: ${DTR_SAMPLE_APP_REPO}/py-bookings:${TAG}
+    build:
+        context: booksvc
+
   reservations:
     image: ${DTR_SAMPLE_APP_REPO}/py-reservations:${TAG}
     build:

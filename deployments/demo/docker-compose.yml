@@ -1,7 +1,7 @@
 version: '3'
 services:
   api:
-    image: ${DTR_SAMPLE_APP_REPO}/py-apigateway:latest
+    image: ${DTR_SAMPLE_APP_REPO}/py-apigateway
     ports:
       - "5001:5000"
     container_name: py-api-gateway
@@ -12,31 +12,22 @@ services:
       driver: none
 
   bookings:
-    image: ${DTR_SAMPLE_APP_REPO}/node-bookings:poc-m1
-    container_name: node-bookings
-    entrypoint: ["node", "index.js"]
+    image: ${DTR_SAMPLE_APP_REPO}/py-bookings
+    container_name: py-bookings
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py","--exporter", "otc"]
     env_file:
       - setup.env
     logging:
       driver: none
 
   payments:
-    image: dtr.corp.appdynamics.com/rhynier.myburgh/dotnet-payments
-    container_name: dotnet-payments
-    entrypoint: ["dotnet",  "PaymentService.dll", "--exporter", "otc"]
+    image: ${DTR_SAMPLE_APP_REPO}/py-payments:${TAG}
+    container_name: py-payments
+    entrypoint: ["opentelemetry-instrument",  "python", "app.py" ,"--exporter", "otc"]
     env_file:
       - setup.env
     logging:
       driver: none
-
-  # payments:
-  #   image: ${DTR_SAMPLE_APP_REPO}/py-payments:${TAG}
-  #   container_name: py-payments
-  #   entrypoint: ["opentelemetry-instrument",  "python", "app.py" ,"--exporter", "otc"]
-  #   env_file:
-  #     - setup.env
-  #   logging:
-  #     driver: none
 
   reservations:
     image: ${DTR_SAMPLE_APP_REPO}/py-reservations:latest
