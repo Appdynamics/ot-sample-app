@@ -8,19 +8,25 @@ import (
 	"google.golang.org/grpc"
 	mpb "ingest/internal/opentelemetry-proto-gen/collector/metrics/v1"
 	tpb "ingest/internal/opentelemetry-proto-gen/collector/trace/v1"
+	"io"
 	"log"
 	"net"
+	"os"
 )
 
 type TraceExportService struct {
 	tpb.TraceServiceServer
 }
 
+
+
 func (a *TraceExportService) Export(_ context.Context, request *tpb.ExportTraceServiceRequest) (*tpb.ExportTraceServiceResponse, error) {
 	marshaller := &jsonpb.Marshaler{Indent: "\t"}
 	s, err := marshaller.MarshalToString(request)
 	if err == nil {
-		log.Println(s)
+		if _, err := io.WriteString(os.Stdout, s); err != nil {
+			fmt.Print(err)
+		}
 	} else {
 		log.Print(err.Error())
 	}
@@ -35,7 +41,10 @@ func (b *MetricExportService) Export(_ context.Context, request *mpb.ExportMetri
 	marshaller := &jsonpb.Marshaler{Indent: "\t"}
 	s, err := marshaller.MarshalToString(request)
 	if err == nil {
-		log.Println(s)
+		if _, err := io.WriteString(os.Stdout, s); err != nil {
+			fmt.Print(err)
+		}
+
 	} else {
 		log.Print(err.Error())
 	}
