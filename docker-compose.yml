@@ -12,7 +12,7 @@ services:
       - setup.env
     environment:
       - OTEL_PYTHON_METER_PROVIDER=sdk_meter_provider
-      - OTEL_PYTHON_TRACE_PROVIDER=sdk_trace_provider
+      - OTEL_PYTHON_TRACER_PROVIDER=sdk_tracer_provider
     #logging:
     #  driver: none
 
