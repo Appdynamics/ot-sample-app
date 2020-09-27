@@ -22,16 +22,86 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// AggregationTemporality defines how a metric aggregator reports aggregated
-// values. It describes how those values relate to the time interval over
-// which they are aggregated.
-type AggregationTemporality int32
+// Type is the type of values a metric has.
+type MetricDescriptor_Type int32
 
 const (
-	// UNSPECIFIED is the default AggregationTemporality, it MUST not be used.
-	AggregationTemporality_AGGREGATION_TEMPORALITY_UNSPECIFIED AggregationTemporality = 0
-	// DELTA is an AggregationTemporality for a metric aggregator which reports
-	// changes since last report time. Successive metrics contain aggregation of
+	// INVALID_TYPE is the default Type, it MUST not be used.
+	MetricDescriptor_INVALID_TYPE MetricDescriptor_Type = 0
+	// INT64 values are signed 64-bit integers.
+	//
+	// A Metric of this Type MUST store its values as Int64DataPoint.
+	MetricDescriptor_INT64 MetricDescriptor_Type = 1
+	// MONOTONIC_INT64 values are monotonically increasing signed 64-bit
+	// integers.
+	//
+	// A Metric of this Type MUST store its values as Int64DataPoint.
+	MetricDescriptor_MONOTONIC_INT64 MetricDescriptor_Type = 2
+	// DOUBLE values are double-precision floating-point numbers.
+	//
+	// A Metric of this Type MUST store its values as DoubleDataPoint.
+	MetricDescriptor_DOUBLE MetricDescriptor_Type = 3
+	// MONOTONIC_DOUBLE values are monotonically increasing double-precision
+	// floating-point numbers.
+	//
+	// A Metric of this Type MUST store its values as DoubleDataPoint.
+	MetricDescriptor_MONOTONIC_DOUBLE MetricDescriptor_Type = 4
+	// Histogram measurement.
+	// Corresponding values are stored in HistogramDataPoint.
+	MetricDescriptor_HISTOGRAM MetricDescriptor_Type = 5
+	// Summary value. Some frameworks implemented Histograms as a summary of observations
+	// (usually things like request durations and response sizes). While it
+	// also provides a total count of observations and a sum of all observed
+	// values, it calculates configurable percentiles over a sliding time
+	// window.
+	// Corresponding values are stored in SummaryDataPoint.
+	MetricDescriptor_SUMMARY MetricDescriptor_Type = 6
+)
+
+var MetricDescriptor_Type_name = map[int32]string{
+	0: "INVALID_TYPE",
+	1: "INT64",
+	2: "MONOTONIC_INT64",
+	3: "DOUBLE",
+	4: "MONOTONIC_DOUBLE",
+	5: "HISTOGRAM",
+	6: "SUMMARY",
+}
+
+var MetricDescriptor_Type_value = map[string]int32{
+	"INVALID_TYPE":     0,
+	"INT64":            1,
+	"MONOTONIC_INT64":  2,
+	"DOUBLE":           3,
+	"MONOTONIC_DOUBLE": 4,
+	"HISTOGRAM":        5,
+	"SUMMARY":          6,
+}
+
+func (x MetricDescriptor_Type) String() string {
+	return proto.EnumName(MetricDescriptor_Type_name, int32(x))
+}
+
+func (MetricDescriptor_Type) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_3c3112f9fa006917, []int{3, 0}
+}
+
+// Temporality is the temporal quality values of a metric have. It
+// describes how those values relate to the time interval over which they
+// are reported.
+type MetricDescriptor_Temporality int32
+
+const (
+	// INVALID_TEMPORALITY is the default Temporality, it MUST not be
+	// used.
+	MetricDescriptor_INVALID_TEMPORALITY MetricDescriptor_Temporality = 0
+	// INSTANTANEOUS is a metric whose values are measured at a particular
+	// instant. The values are not aggregated over any time interval and are
+	// unique per timestamp. As such, these metrics are not expected to have
+	// an associated start time.
+	MetricDescriptor_INSTANTANEOUS MetricDescriptor_Temporality = 1
+	// DELTA is a metric whose values are the aggregation of measurements
+	// made over a time interval. Successive metrics contain aggregation of
 	// values from continuous and non-overlapping intervals.
 	//
 	// The values for a DELTA metric are based only on the time interval
@@ -54,12 +124,13 @@ const (
 	//   8. The 1 second collection cycle ends. A metric is exported for the
 	//      number of requests received over the interval of time t_0+1 to
 	//      t_0+2 with a value of 2.
-	AggregationTemporality_AGGREGATION_TEMPORALITY_DELTA AggregationTemporality = 1
-	// CUMULATIVE is an AggregationTemporality for a metic aggregator which
-	// reports changes since a fixed start time. This means that current values
-	// of a CUMULATIVE metric depend on all previous measurements since the
-	// start time. Because of this, the sender is required to retain this state
-	// in some form. If this state is lost or invalidated, the CUMULATIVE metric
+	MetricDescriptor_DELTA MetricDescriptor_Temporality = 2
+	// CUMULATIVE is a metric whose values are the aggregation of
+	// successively made measurements from a fixed start time until the last
+	// reported measurement. This means that current values of a CUMULATIVE
+	// metric depend on all previous measurements since the start time.
+	// Because of this, the sender is required to retain this state in some
+	// form. If this state is lost or invalidated, the CUMULATIVE metric
 	// values MUST be reset and a new fixed start time following the last
 	// reported measurement time sent MUST be used.
 	//
@@ -85,32 +156,29 @@ const (
 	//   12. The 1 second collection cycle ends. A metric is exported for the
 	//      number of requests received over the interval of time t_1 to
 	//      t_0+1 with a value of 1.
-	//
-	// Note: Even though, when reporting changes since last report time, using
-	// CUMULATIVE is valid, it is not recommended. This may cause problems for
-	// systems that do not use start_time to determine when the aggregation
-	// value was reset (e.g. Prometheus).
-	AggregationTemporality_AGGREGATION_TEMPORALITY_CUMULATIVE AggregationTemporality = 2
+	MetricDescriptor_CUMULATIVE MetricDescriptor_Temporality = 3
 )
 
-var AggregationTemporality_name = map[int32]string{
-	0: "AGGREGATION_TEMPORALITY_UNSPECIFIED",
-	1: "AGGREGATION_TEMPORALITY_DELTA",
-	2: "AGGREGATION_TEMPORALITY_CUMULATIVE",
+var MetricDescriptor_Temporality_name = map[int32]string{
+	0: "INVALID_TEMPORALITY",
+	1: "INSTANTANEOUS",
+	2: "DELTA",
+	3: "CUMULATIVE",
 }
 
-var AggregationTemporality_value = map[string]int32{
-	"AGGREGATION_TEMPORALITY_UNSPECIFIED": 0,
-	"AGGREGATION_TEMPORALITY_DELTA":       1,
-	"AGGREGATION_TEMPORALITY_CUMULATIVE":  2,
+var MetricDescriptor_Temporality_value = map[string]int32{
+	"INVALID_TEMPORALITY": 0,
+	"INSTANTANEOUS":       1,
+	"DELTA":               2,
+	"CUMULATIVE":          3,
 }
 
-func (x AggregationTemporality) String() string {
-	return proto.EnumName(AggregationTemporality_name, int32(x))
+func (x MetricDescriptor_Temporality) String() string {
+	return proto.EnumName(MetricDescriptor_Temporality_name, int32(x))
 }
 
-func (AggregationTemporality) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_3c3112f9fa006917, []int{0}
+func (MetricDescriptor_Temporality) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_3c3112f9fa006917, []int{3, 1}
 }
 
 // A collection of InstrumentationLibraryMetrics from a Resource.
@@ -215,99 +283,66 @@ func (m *InstrumentationLibraryMetrics) GetMetrics() []*Metric {
 
 // Defines a Metric which has one or more timeseries.
 //
-// The data model and relation between entities is shown in the
-// diagram below. Here, "DataPoint" is the term used to refer to any
-// one of the specific data point value types, and "points" is the term used
-// to refer to any one of the lists of points contained in the Metric.
+// The data model and relation between entities is shown in the diagram below.
 //
-// - Metric is composed of a metadata and data.
-// - Metadata part contains a name, description, unit.
-// - Data is one of the possible types (Gauge, Sum, Histogram, etc.).
-// - DataPoint contains timestamps, labels, and one of the possible value type
-//   fields.
+// - Metric is composed of a MetricDescriptor and a list of data points.
+// - MetricDescriptor contains a list of label keys (shown horizontally).
+// - Data is a list of DataPoints (shown vertically).
+// - DataPoint contains a list of label values and a value.
 //
 //     Metric
-//  +------------+
-//  |name        |
-//  |description |
-//  |unit        |     +---------------------------+
-//  |data        |---> |Gauge, Sum, Histogram, ... |
-//  +------------+     +---------------------------+
+//  +----------+         +------------------------+
+//  |descriptor|-------->| MetricDescriptor       |
+//  |          |         |+-----+-----+   +-----+ |
+//  |          |         ||label|label|...|label| |
+//  |      data|--+      ||key1 |key2 |   |keyN | |
+//  +----------+  |      |+-----+-----+   +-----+ |
+//                |      +------------------------+
+//                |
+//                |      +---------------------------+
+//                |      |DataPoint 1                |
+//                v      |+------+------+   +------+ |
+//             +-----+   ||label |label |...|label | |
+//             |  1  |-->||value1|value2|...|valueN| |
+//             +-----+   |+------+------+   +------+ |
+//             |  .  |   |+-----+                    |
+//             |  .  |   ||value|                    |
+//             |  .  |   |+-----+                    |
+//             |  .  |   +---------------------------+
+//             |  .  |                   .
+//             |  .  |                   .
+//             |  .  |                   .
+//             |  .  |   +---------------------------+
+//             |  .  |   |DataPoint M                |
+//             +-----+   |+------+------+   +------+ |
+//             |  M  |-->||label |label |...|label | |
+//             +-----+   ||value1|value2|...|valueN| |
+//                       |+------+------+   +------+ |
+//                       |+-----+                    |
+//                       ||value|                    |
+//                       |+-----+                    |
+//                       +---------------------------+
 //
-//    Data [One of Gauge, Sum, Histogram, ...]
-//  +-----------+
-//  |...        |  // Metadata about the Data.
-//  |points     |--+
-//  +-----------+  |
-//                 |      +---------------------------+
-//                 |      |DataPoint 1                |
-//                 v      |+------+------+   +------+ |
-//              +-----+   ||label |label |...|label | |
-//              |  1  |-->||value1|value2|...|valueN| |
-//              +-----+   |+------+------+   +------+ |
-//              |  .  |   |+-----+                    |
-//              |  .  |   ||value|                    |
-//              |  .  |   |+-----+                    |
-//              |  .  |   +---------------------------+
-//              |  .  |                   .
-//              |  .  |                   .
-//              |  .  |                   .
-//              |  .  |   +---------------------------+
-//              |  .  |   |DataPoint M                |
-//              +-----+   |+------+------+   +------+ |
-//              |  M  |-->||label |label |...|label | |
-//              +-----+   ||value1|value2|...|valueN| |
-//                        |+------+------+   +------+ |
-//                        |+-----+                    |
-//                        ||value|                    |
-//                        |+-----+                    |
-//                        +---------------------------+
+//-----------------------------------------------------------------------
+// DataPoint is a value of specific type corresponding to a given moment in
+// time. Each DataPoint is timestamped.
 //
-// All DataPoint types have three common fields:
-// - Labels zero or more key-value pairs associated with the data point.
-// - StartTimeUnixNano MUST be set to the start of the interval when the data's
-//   type includes an AggregationTemporality. This field is not set otherwise.
-// - TimeUnixNano MUST be set to:
-//   - the moment when an aggregation is reported (independent of the
-//     aggregation temporality).
-//   - the instantaneous time of the event.
+// DataPoint is strongly typed: each DataPoint type has a specific Protobuf message
+// depending on the value type of the metric and thus there are currently 4 DataPoint
+// messages, which correspond to the types of metric values.
 type Metric struct {
-	// name of the metric, including its DNS name prefix. It must be unique.
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// description of the metric, which can be used in documentation.
-	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	// unit in which the metric value is reported. Follows the format
-	// described by http://unitsofmeasure.org/ucum.html.
-	Unit string `protobuf:"bytes,3,opt,name=unit,proto3" json:"unit,omitempty"`
-	// Data determines the aggregation type (if any) of the metric, what is the
-	// reported value type for the data points, as well as the relatationship to
-	// the time interval over which they are reported.
-	//
-	// TODO: Update table after the decision on:
-	// https://github.com/open-telemetry/opentelemetry-specification/issues/731.
-	// By default, metrics recording using the OpenTelemetry API are exported as
-	// (the table does not include MeasurementValueType to avoid extra rows):
-	//
-	//   Instrument         Type
-	//   ----------------------------------------------
-	//   Counter            Sum(aggregation_temporality=delta;is_monotonic=true)
-	//   UpDownCounter      Sum(aggregation_temporality=delta;is_monotonic=false)
-	//   ValueRecorder      TBD
-	//   SumObserver        Sum(aggregation_temporality=cumulative;is_monotonic=true)
-	//   UpDownSumObserver  Sum(aggregation_temporality=cumulative;is_monotonic=false)
-	//   ValueObserver      Gauge()
-	//
-	// Types that are valid to be assigned to Data:
-	//	*Metric_IntGauge
-	//	*Metric_DoubleGauge
-	//	*Metric_IntSum
-	//	*Metric_DoubleSum
-	//	*Metric_IntHistogram
-	//	*Metric_DoubleHistogram
-	Data                 isMetric_Data `protobuf_oneof:"data"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
+	// metric_descriptor describes the Metric.
+	MetricDescriptor *MetricDescriptor `protobuf:"bytes,1,opt,name=metric_descriptor,json=metricDescriptor,proto3" json:"metric_descriptor,omitempty"`
+	// Data is a list of one or more DataPoints for a single metric. Only one of the
+	// following fields is used for the data, depending on the type of the metric defined
+	// by MetricDescriptor.type field.
+	Int64DataPoints      []*Int64DataPoint     `protobuf:"bytes,2,rep,name=int64_data_points,json=int64DataPoints,proto3" json:"int64_data_points,omitempty"`
+	DoubleDataPoints     []*DoubleDataPoint    `protobuf:"bytes,3,rep,name=double_data_points,json=doubleDataPoints,proto3" json:"double_data_points,omitempty"`
+	HistogramDataPoints  []*HistogramDataPoint `protobuf:"bytes,4,rep,name=histogram_data_points,json=histogramDataPoints,proto3" json:"histogram_data_points,omitempty"`
+	SummaryDataPoints    []*SummaryDataPoint   `protobuf:"bytes,5,rep,name=summary_data_points,json=summaryDataPoints,proto3" json:"summary_data_points,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
 func (m *Metric) Reset()         { *m = Metric{} }
@@ -334,560 +369,225 @@ func (m *Metric) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Metric proto.InternalMessageInfo
 
-type isMetric_Data interface {
-	isMetric_Data()
-}
-
-type Metric_IntGauge struct {
-	IntGauge *IntGauge `protobuf:"bytes,4,opt,name=int_gauge,json=intGauge,proto3,oneof" json:"int_gauge,omitempty"`
-}
-type Metric_DoubleGauge struct {
-	DoubleGauge *DoubleGauge `protobuf:"bytes,5,opt,name=double_gauge,json=doubleGauge,proto3,oneof" json:"double_gauge,omitempty"`
-}
-type Metric_IntSum struct {
-	IntSum *IntSum `protobuf:"bytes,6,opt,name=int_sum,json=intSum,proto3,oneof" json:"int_sum,omitempty"`
-}
-type Metric_DoubleSum struct {
-	DoubleSum *DoubleSum `protobuf:"bytes,7,opt,name=double_sum,json=doubleSum,proto3,oneof" json:"double_sum,omitempty"`
-}
-type Metric_IntHistogram struct {
-	IntHistogram *IntHistogram `protobuf:"bytes,8,opt,name=int_histogram,json=intHistogram,proto3,oneof" json:"int_histogram,omitempty"`
-}
-type Metric_DoubleHistogram struct {
-	DoubleHistogram *DoubleHistogram `protobuf:"bytes,9,opt,name=double_histogram,json=doubleHistogram,proto3,oneof" json:"double_histogram,omitempty"`
-}
-
-func (*Metric_IntGauge) isMetric_Data()        {}
-func (*Metric_DoubleGauge) isMetric_Data()     {}
-func (*Metric_IntSum) isMetric_Data()          {}
-func (*Metric_DoubleSum) isMetric_Data()       {}
-func (*Metric_IntHistogram) isMetric_Data()    {}
-func (*Metric_DoubleHistogram) isMetric_Data() {}
-
-func (m *Metric) GetData() isMetric_Data {
+func (m *Metric) GetMetricDescriptor() *MetricDescriptor {
 	if m != nil {
-		return m.Data
+		return m.MetricDescriptor
 	}
 	return nil
 }
 
-func (m *Metric) GetName() string {
+func (m *Metric) GetInt64DataPoints() []*Int64DataPoint {
+	if m != nil {
+		return m.Int64DataPoints
+	}
+	return nil
+}
+
+func (m *Metric) GetDoubleDataPoints() []*DoubleDataPoint {
+	if m != nil {
+		return m.DoubleDataPoints
+	}
+	return nil
+}
+
+func (m *Metric) GetHistogramDataPoints() []*HistogramDataPoint {
+	if m != nil {
+		return m.HistogramDataPoints
+	}
+	return nil
+}
+
+func (m *Metric) GetSummaryDataPoints() []*SummaryDataPoint {
+	if m != nil {
+		return m.SummaryDataPoints
+	}
+	return nil
+}
+
+// Defines a metric type and its schema.
+type MetricDescriptor struct {
+	// name of the metric, including its DNS name prefix. It must be unique.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// description of the metric, which can be used in documentation.
+	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	// unit in which the metric value is reported. Follows the format
+	// described by http://unitsofmeasure.org/ucum.html.
+	Unit string `protobuf:"bytes,3,opt,name=unit,proto3" json:"unit,omitempty"`
+	// type is the type of values this metric has.
+	Type MetricDescriptor_Type `protobuf:"varint,4,opt,name=type,proto3,enum=opentelemetry.proto.metrics.v1.MetricDescriptor_Type" json:"type,omitempty"`
+	// temporality is the Temporality of values this metric has.
+	Temporality          MetricDescriptor_Temporality `protobuf:"varint,5,opt,name=temporality,proto3,enum=opentelemetry.proto.metrics.v1.MetricDescriptor_Temporality" json:"temporality,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
+	XXX_unrecognized     []byte                       `json:"-"`
+	XXX_sizecache        int32                        `json:"-"`
+}
+
+func (m *MetricDescriptor) Reset()         { *m = MetricDescriptor{} }
+func (m *MetricDescriptor) String() string { return proto.CompactTextString(m) }
+func (*MetricDescriptor) ProtoMessage()    {}
+func (*MetricDescriptor) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c3112f9fa006917, []int{3}
+}
+func (m *MetricDescriptor) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_MetricDescriptor.Unmarshal(m, b)
+}
+func (m *MetricDescriptor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_MetricDescriptor.Marshal(b, m, deterministic)
+}
+func (m *MetricDescriptor) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetricDescriptor.Merge(m, src)
+}
+func (m *MetricDescriptor) XXX_Size() int {
+	return xxx_messageInfo_MetricDescriptor.Size(m)
+}
+func (m *MetricDescriptor) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetricDescriptor.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MetricDescriptor proto.InternalMessageInfo
+
+func (m *MetricDescriptor) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-func (m *Metric) GetDescription() string {
+func (m *MetricDescriptor) GetDescription() string {
 	if m != nil {
 		return m.Description
 	}
 	return ""
 }
 
-func (m *Metric) GetUnit() string {
+func (m *MetricDescriptor) GetUnit() string {
 	if m != nil {
 		return m.Unit
 	}
 	return ""
 }
 
-func (m *Metric) GetIntGauge() *IntGauge {
-	if x, ok := m.GetData().(*Metric_IntGauge); ok {
-		return x.IntGauge
-	}
-	return nil
-}
-
-func (m *Metric) GetDoubleGauge() *DoubleGauge {
-	if x, ok := m.GetData().(*Metric_DoubleGauge); ok {
-		return x.DoubleGauge
-	}
-	return nil
-}
-
-func (m *Metric) GetIntSum() *IntSum {
-	if x, ok := m.GetData().(*Metric_IntSum); ok {
-		return x.IntSum
-	}
-	return nil
-}
-
-func (m *Metric) GetDoubleSum() *DoubleSum {
-	if x, ok := m.GetData().(*Metric_DoubleSum); ok {
-		return x.DoubleSum
-	}
-	return nil
-}
-
-func (m *Metric) GetIntHistogram() *IntHistogram {
-	if x, ok := m.GetData().(*Metric_IntHistogram); ok {
-		return x.IntHistogram
-	}
-	return nil
-}
-
-func (m *Metric) GetDoubleHistogram() *DoubleHistogram {
-	if x, ok := m.GetData().(*Metric_DoubleHistogram); ok {
-		return x.DoubleHistogram
-	}
-	return nil
-}
-
-// XXX_OneofWrappers is for the internal use of the proto package.
-func (*Metric) XXX_OneofWrappers() []interface{} {
-	return []interface{}{
-		(*Metric_IntGauge)(nil),
-		(*Metric_DoubleGauge)(nil),
-		(*Metric_IntSum)(nil),
-		(*Metric_DoubleSum)(nil),
-		(*Metric_IntHistogram)(nil),
-		(*Metric_DoubleHistogram)(nil),
-	}
-}
-
-// Gauge represents the type of a int scalar metric that always exports the
-// "current value" for every data point. It should be used for an "unknown"
-// aggregation.
-//
-// A Gauge does not support different aggregation temporalities. Given the
-// aggregation is unknown, points cannot be combined using the same
-// aggregation, regardless of aggregation temporalities. Therefore,
-// AggregationTemporality is not included. Consequently, this also means
-// "StartTimeUnixNano" is ignored for all data points.
-type IntGauge struct {
-	DataPoints           []*IntDataPoint `protobuf:"bytes,1,rep,name=data_points,json=dataPoints,proto3" json:"data_points,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
-	XXX_unrecognized     []byte          `json:"-"`
-	XXX_sizecache        int32           `json:"-"`
-}
-
-func (m *IntGauge) Reset()         { *m = IntGauge{} }
-func (m *IntGauge) String() string { return proto.CompactTextString(m) }
-func (*IntGauge) ProtoMessage()    {}
-func (*IntGauge) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c3112f9fa006917, []int{3}
-}
-func (m *IntGauge) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_IntGauge.Unmarshal(m, b)
-}
-func (m *IntGauge) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_IntGauge.Marshal(b, m, deterministic)
-}
-func (m *IntGauge) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IntGauge.Merge(m, src)
-}
-func (m *IntGauge) XXX_Size() int {
-	return xxx_messageInfo_IntGauge.Size(m)
-}
-func (m *IntGauge) XXX_DiscardUnknown() {
-	xxx_messageInfo_IntGauge.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_IntGauge proto.InternalMessageInfo
-
-func (m *IntGauge) GetDataPoints() []*IntDataPoint {
+func (m *MetricDescriptor) GetType() MetricDescriptor_Type {
 	if m != nil {
-		return m.DataPoints
+		return m.Type
 	}
-	return nil
+	return MetricDescriptor_INVALID_TYPE
 }
 
-// Gauge represents the type of a double scalar metric that always exports the
-// "current value" for every data point. It should be used for an "unknown"
-// aggregation.
-//
-// A Gauge does not support different aggregation temporalities. Given the
-// aggregation is unknown, points cannot be combined using the same
-// aggregation, regardless of aggregation temporalities. Therefore,
-// AggregationTemporality is not included. Consequently, this also means
-// "StartTimeUnixNano" is ignored for all data points.
-type DoubleGauge struct {
-	DataPoints           []*DoubleDataPoint `protobuf:"bytes,1,rep,name=data_points,json=dataPoints,proto3" json:"data_points,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
-	XXX_unrecognized     []byte             `json:"-"`
-	XXX_sizecache        int32              `json:"-"`
-}
-
-func (m *DoubleGauge) Reset()         { *m = DoubleGauge{} }
-func (m *DoubleGauge) String() string { return proto.CompactTextString(m) }
-func (*DoubleGauge) ProtoMessage()    {}
-func (*DoubleGauge) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c3112f9fa006917, []int{4}
-}
-func (m *DoubleGauge) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DoubleGauge.Unmarshal(m, b)
-}
-func (m *DoubleGauge) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DoubleGauge.Marshal(b, m, deterministic)
-}
-func (m *DoubleGauge) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DoubleGauge.Merge(m, src)
-}
-func (m *DoubleGauge) XXX_Size() int {
-	return xxx_messageInfo_DoubleGauge.Size(m)
-}
-func (m *DoubleGauge) XXX_DiscardUnknown() {
-	xxx_messageInfo_DoubleGauge.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DoubleGauge proto.InternalMessageInfo
-
-func (m *DoubleGauge) GetDataPoints() []*DoubleDataPoint {
+func (m *MetricDescriptor) GetTemporality() MetricDescriptor_Temporality {
 	if m != nil {
-		return m.DataPoints
+		return m.Temporality
 	}
-	return nil
+	return MetricDescriptor_INVALID_TEMPORALITY
 }
 
-// Sum represents the type of a numeric int scalar metric that is calculated as
-// a sum of all reported measurements over a time interval.
-type IntSum struct {
-	DataPoints []*IntDataPoint `protobuf:"bytes,1,rep,name=data_points,json=dataPoints,proto3" json:"data_points,omitempty"`
-	// aggregation_temporality describes if the aggregator reports delta changes
-	// since last report time, or cumulative changes since a fixed start time.
-	AggregationTemporality AggregationTemporality `protobuf:"varint,2,opt,name=aggregation_temporality,json=aggregationTemporality,proto3,enum=opentelemetry.proto.metrics.v1.AggregationTemporality" json:"aggregation_temporality,omitempty"`
-	// If "true" means that the sum is monotonic.
-	IsMonotonic          bool     `protobuf:"varint,3,opt,name=is_monotonic,json=isMonotonic,proto3" json:"is_monotonic,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *IntSum) Reset()         { *m = IntSum{} }
-func (m *IntSum) String() string { return proto.CompactTextString(m) }
-func (*IntSum) ProtoMessage()    {}
-func (*IntSum) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c3112f9fa006917, []int{5}
-}
-func (m *IntSum) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_IntSum.Unmarshal(m, b)
-}
-func (m *IntSum) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_IntSum.Marshal(b, m, deterministic)
-}
-func (m *IntSum) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IntSum.Merge(m, src)
-}
-func (m *IntSum) XXX_Size() int {
-	return xxx_messageInfo_IntSum.Size(m)
-}
-func (m *IntSum) XXX_DiscardUnknown() {
-	xxx_messageInfo_IntSum.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_IntSum proto.InternalMessageInfo
-
-func (m *IntSum) GetDataPoints() []*IntDataPoint {
-	if m != nil {
-		return m.DataPoints
-	}
-	return nil
-}
-
-func (m *IntSum) GetAggregationTemporality() AggregationTemporality {
-	if m != nil {
-		return m.AggregationTemporality
-	}
-	return AggregationTemporality_AGGREGATION_TEMPORALITY_UNSPECIFIED
-}
-
-func (m *IntSum) GetIsMonotonic() bool {
-	if m != nil {
-		return m.IsMonotonic
-	}
-	return false
-}
-
-// Sum represents the type of a numeric double scalar metric that is calculated
-// as a sum of all reported measurements over a time interval.
-type DoubleSum struct {
-	DataPoints []*DoubleDataPoint `protobuf:"bytes,1,rep,name=data_points,json=dataPoints,proto3" json:"data_points,omitempty"`
-	// aggregation_temporality describes if the aggregator reports delta changes
-	// since last report time, or cumulative changes since a fixed start time.
-	AggregationTemporality AggregationTemporality `protobuf:"varint,2,opt,name=aggregation_temporality,json=aggregationTemporality,proto3,enum=opentelemetry.proto.metrics.v1.AggregationTemporality" json:"aggregation_temporality,omitempty"`
-	// If "true" means that the sum is monotonic.
-	IsMonotonic          bool     `protobuf:"varint,3,opt,name=is_monotonic,json=isMonotonic,proto3" json:"is_monotonic,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *DoubleSum) Reset()         { *m = DoubleSum{} }
-func (m *DoubleSum) String() string { return proto.CompactTextString(m) }
-func (*DoubleSum) ProtoMessage()    {}
-func (*DoubleSum) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c3112f9fa006917, []int{6}
-}
-func (m *DoubleSum) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DoubleSum.Unmarshal(m, b)
-}
-func (m *DoubleSum) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DoubleSum.Marshal(b, m, deterministic)
-}
-func (m *DoubleSum) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DoubleSum.Merge(m, src)
-}
-func (m *DoubleSum) XXX_Size() int {
-	return xxx_messageInfo_DoubleSum.Size(m)
-}
-func (m *DoubleSum) XXX_DiscardUnknown() {
-	xxx_messageInfo_DoubleSum.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DoubleSum proto.InternalMessageInfo
-
-func (m *DoubleSum) GetDataPoints() []*DoubleDataPoint {
-	if m != nil {
-		return m.DataPoints
-	}
-	return nil
-}
-
-func (m *DoubleSum) GetAggregationTemporality() AggregationTemporality {
-	if m != nil {
-		return m.AggregationTemporality
-	}
-	return AggregationTemporality_AGGREGATION_TEMPORALITY_UNSPECIFIED
-}
-
-func (m *DoubleSum) GetIsMonotonic() bool {
-	if m != nil {
-		return m.IsMonotonic
-	}
-	return false
-}
-
-// Represents the type of a metric that is calculated by aggregating as a
-// Histogram of all reported int measurements over a time interval.
-type IntHistogram struct {
-	DataPoints []*IntHistogramDataPoint `protobuf:"bytes,1,rep,name=data_points,json=dataPoints,proto3" json:"data_points,omitempty"`
-	// aggregation_temporality describes if the aggregator reports delta changes
-	// since last report time, or cumulative changes since a fixed start time.
-	AggregationTemporality AggregationTemporality `protobuf:"varint,2,opt,name=aggregation_temporality,json=aggregationTemporality,proto3,enum=opentelemetry.proto.metrics.v1.AggregationTemporality" json:"aggregation_temporality,omitempty"`
-	XXX_NoUnkeyedLiteral   struct{}               `json:"-"`
-	XXX_unrecognized       []byte                 `json:"-"`
-	XXX_sizecache          int32                  `json:"-"`
-}
-
-func (m *IntHistogram) Reset()         { *m = IntHistogram{} }
-func (m *IntHistogram) String() string { return proto.CompactTextString(m) }
-func (*IntHistogram) ProtoMessage()    {}
-func (*IntHistogram) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c3112f9fa006917, []int{7}
-}
-func (m *IntHistogram) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_IntHistogram.Unmarshal(m, b)
-}
-func (m *IntHistogram) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_IntHistogram.Marshal(b, m, deterministic)
-}
-func (m *IntHistogram) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IntHistogram.Merge(m, src)
-}
-func (m *IntHistogram) XXX_Size() int {
-	return xxx_messageInfo_IntHistogram.Size(m)
-}
-func (m *IntHistogram) XXX_DiscardUnknown() {
-	xxx_messageInfo_IntHistogram.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_IntHistogram proto.InternalMessageInfo
-
-func (m *IntHistogram) GetDataPoints() []*IntHistogramDataPoint {
-	if m != nil {
-		return m.DataPoints
-	}
-	return nil
-}
-
-func (m *IntHistogram) GetAggregationTemporality() AggregationTemporality {
-	if m != nil {
-		return m.AggregationTemporality
-	}
-	return AggregationTemporality_AGGREGATION_TEMPORALITY_UNSPECIFIED
-}
-
-// Represents the type of a metric that is calculated by aggregating as a
-// Histogram of all reported double measurements over a time interval.
-type DoubleHistogram struct {
-	DataPoints []*DoubleHistogramDataPoint `protobuf:"bytes,1,rep,name=data_points,json=dataPoints,proto3" json:"data_points,omitempty"`
-	// aggregation_temporality describes if the aggregator reports delta changes
-	// since last report time, or cumulative changes since a fixed start time.
-	AggregationTemporality AggregationTemporality `protobuf:"varint,2,opt,name=aggregation_temporality,json=aggregationTemporality,proto3,enum=opentelemetry.proto.metrics.v1.AggregationTemporality" json:"aggregation_temporality,omitempty"`
-	XXX_NoUnkeyedLiteral   struct{}               `json:"-"`
-	XXX_unrecognized       []byte                 `json:"-"`
-	XXX_sizecache          int32                  `json:"-"`
-}
-
-func (m *DoubleHistogram) Reset()         { *m = DoubleHistogram{} }
-func (m *DoubleHistogram) String() string { return proto.CompactTextString(m) }
-func (*DoubleHistogram) ProtoMessage()    {}
-func (*DoubleHistogram) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c3112f9fa006917, []int{8}
-}
-func (m *DoubleHistogram) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DoubleHistogram.Unmarshal(m, b)
-}
-func (m *DoubleHistogram) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DoubleHistogram.Marshal(b, m, deterministic)
-}
-func (m *DoubleHistogram) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DoubleHistogram.Merge(m, src)
-}
-func (m *DoubleHistogram) XXX_Size() int {
-	return xxx_messageInfo_DoubleHistogram.Size(m)
-}
-func (m *DoubleHistogram) XXX_DiscardUnknown() {
-	xxx_messageInfo_DoubleHistogram.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DoubleHistogram proto.InternalMessageInfo
-
-func (m *DoubleHistogram) GetDataPoints() []*DoubleHistogramDataPoint {
-	if m != nil {
-		return m.DataPoints
-	}
-	return nil
-}
-
-func (m *DoubleHistogram) GetAggregationTemporality() AggregationTemporality {
-	if m != nil {
-		return m.AggregationTemporality
-	}
-	return AggregationTemporality_AGGREGATION_TEMPORALITY_UNSPECIFIED
-}
-
-// IntDataPoint is a single data point in a timeseries that describes the
-// time-varying values of a int64 metric.
-type IntDataPoint struct {
+// Int64DataPoint is a single data point in a timeseries that describes the time-varying
+// values of a int64 metric.
+type Int64DataPoint struct {
 	// The set of labels that uniquely identify this timeseries.
 	Labels []*v11.StringKeyValue `protobuf:"bytes,1,rep,name=labels,proto3" json:"labels,omitempty"`
-	// start_time_unix_nano is the last time when the aggregation value was reset
-	// to "zero". For some metric types this is ignored, see data types for more
-	// details.
+	// start_time_unix_nano is the time when the cumulative value was reset to zero.
+	// This is used for Counter type only. For Gauge the value is not specified and
+	// defaults to 0.
 	//
-	// The aggregation value is over the time interval (start_time_unix_nano,
-	// time_unix_nano].
+	// The cumulative value is over the time interval (start_time_unix_nano, time_unix_nano].
+	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
 	//
-	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January
-	// 1970.
-	//
-	// Value of 0 indicates that the timestamp is unspecified. In that case the
-	// timestamp may be decided by the backend.
+	// Value of 0 indicates that the timestamp is unspecified. In that case the timestamp
+	// may be decided by the backend.
 	StartTimeUnixNano uint64 `protobuf:"fixed64,2,opt,name=start_time_unix_nano,json=startTimeUnixNano,proto3" json:"start_time_unix_nano,omitempty"`
-	// time_unix_nano is the moment when this aggregation value was reported.
-	//
-	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January
-	// 1970.
+	// time_unix_nano is the moment when this value was recorded.
+	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
 	TimeUnixNano uint64 `protobuf:"fixed64,3,opt,name=time_unix_nano,json=timeUnixNano,proto3" json:"time_unix_nano,omitempty"`
 	// value itself.
-	Value int64 `protobuf:"fixed64,4,opt,name=value,proto3" json:"value,omitempty"`
-	// (Optional) List of exemplars collected from
-	// measurements that were used to form the data point
-	Exemplars            []*IntExemplar `protobuf:"bytes,5,rep,name=exemplars,proto3" json:"exemplars,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
+	Value                int64    `protobuf:"varint,4,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *IntDataPoint) Reset()         { *m = IntDataPoint{} }
-func (m *IntDataPoint) String() string { return proto.CompactTextString(m) }
-func (*IntDataPoint) ProtoMessage()    {}
-func (*IntDataPoint) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c3112f9fa006917, []int{9}
+func (m *Int64DataPoint) Reset()         { *m = Int64DataPoint{} }
+func (m *Int64DataPoint) String() string { return proto.CompactTextString(m) }
+func (*Int64DataPoint) ProtoMessage()    {}
+func (*Int64DataPoint) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c3112f9fa006917, []int{4}
 }
-func (m *IntDataPoint) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_IntDataPoint.Unmarshal(m, b)
+func (m *Int64DataPoint) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Int64DataPoint.Unmarshal(m, b)
 }
-func (m *IntDataPoint) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_IntDataPoint.Marshal(b, m, deterministic)
+func (m *Int64DataPoint) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Int64DataPoint.Marshal(b, m, deterministic)
 }
-func (m *IntDataPoint) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IntDataPoint.Merge(m, src)
+func (m *Int64DataPoint) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Int64DataPoint.Merge(m, src)
 }
-func (m *IntDataPoint) XXX_Size() int {
-	return xxx_messageInfo_IntDataPoint.Size(m)
+func (m *Int64DataPoint) XXX_Size() int {
+	return xxx_messageInfo_Int64DataPoint.Size(m)
 }
-func (m *IntDataPoint) XXX_DiscardUnknown() {
-	xxx_messageInfo_IntDataPoint.DiscardUnknown(m)
+func (m *Int64DataPoint) XXX_DiscardUnknown() {
+	xxx_messageInfo_Int64DataPoint.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_IntDataPoint proto.InternalMessageInfo
+var xxx_messageInfo_Int64DataPoint proto.InternalMessageInfo
 
-func (m *IntDataPoint) GetLabels() []*v11.StringKeyValue {
+func (m *Int64DataPoint) GetLabels() []*v11.StringKeyValue {
 	if m != nil {
 		return m.Labels
 	}
 	return nil
 }
 
-func (m *IntDataPoint) GetStartTimeUnixNano() uint64 {
+func (m *Int64DataPoint) GetStartTimeUnixNano() uint64 {
 	if m != nil {
 		return m.StartTimeUnixNano
 	}
 	return 0
 }
 
-func (m *IntDataPoint) GetTimeUnixNano() uint64 {
+func (m *Int64DataPoint) GetTimeUnixNano() uint64 {
 	if m != nil {
 		return m.TimeUnixNano
 	}
 	return 0
 }
 
-func (m *IntDataPoint) GetValue() int64 {
+func (m *Int64DataPoint) GetValue() int64 {
 	if m != nil {
 		return m.Value
 	}
 	return 0
 }
 
-func (m *IntDataPoint) GetExemplars() []*IntExemplar {
-	if m != nil {
-		return m.Exemplars
-	}
-	return nil
-}
-
-// DoubleDataPoint is a single data point in a timeseries that describes the
-// time-varying value of a double metric.
+// DoubleDataPoint is a single data point in a timeseries that describes the time-varying
+// value of a double metric.
 type DoubleDataPoint struct {
 	// The set of labels that uniquely identify this timeseries.
 	Labels []*v11.StringKeyValue `protobuf:"bytes,1,rep,name=labels,proto3" json:"labels,omitempty"`
-	// start_time_unix_nano is the last time when the aggregation value was reset
-	// to "zero". For some metric types this is ignored, see data types for more
-	// details.
+	// start_time_unix_nano is the time when the cumulative value was reset to zero.
+	// This is used for Counter type only. For Gauge the value is not specified and
+	// defaults to 0.
 	//
-	// The aggregation value is over the time interval (start_time_unix_nano,
-	// time_unix_nano].
+	// The cumulative value is over the time interval (start_time_unix_nano, time_unix_nano].
+	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
 	//
-	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January
-	// 1970.
-	//
-	// Value of 0 indicates that the timestamp is unspecified. In that case the
-	// timestamp may be decided by the backend.
+	// Value of 0 indicates that the timestamp is unspecified. In that case the timestamp
+	// may be decided by the backend.
 	StartTimeUnixNano uint64 `protobuf:"fixed64,2,opt,name=start_time_unix_nano,json=startTimeUnixNano,proto3" json:"start_time_unix_nano,omitempty"`
-	// time_unix_nano is the moment when this aggregation value was reported.
-	//
-	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January
-	// 1970.
+	// time_unix_nano is the moment when this value was recorded.
+	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
 	TimeUnixNano uint64 `protobuf:"fixed64,3,opt,name=time_unix_nano,json=timeUnixNano,proto3" json:"time_unix_nano,omitempty"`
 	// value itself.
-	Value float64 `protobuf:"fixed64,4,opt,name=value,proto3" json:"value,omitempty"`
-	// (Optional) List of exemplars collected from
-	// measurements that were used to form the data point
-	Exemplars            []*DoubleExemplar `protobuf:"bytes,5,rep,name=exemplars,proto3" json:"exemplars,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	Value                float64  `protobuf:"fixed64,4,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *DoubleDataPoint) Reset()         { *m = DoubleDataPoint{} }
 func (m *DoubleDataPoint) String() string { return proto.CompactTextString(m) }
 func (*DoubleDataPoint) ProtoMessage()    {}
 func (*DoubleDataPoint) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c3112f9fa006917, []int{10}
+	return fileDescriptor_3c3112f9fa006917, []int{5}
 }
 func (m *DoubleDataPoint) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DoubleDataPoint.Unmarshal(m, b)
@@ -935,494 +635,416 @@ func (m *DoubleDataPoint) GetValue() float64 {
 	return 0
 }
 
-func (m *DoubleDataPoint) GetExemplars() []*DoubleExemplar {
-	if m != nil {
-		return m.Exemplars
-	}
-	return nil
-}
-
-// IntHistogramDataPoint is a single data point in a timeseries that describes
-// the time-varying values of a Histogram of int values. A Histogram contains
-// summary statistics for a population of values, it may optionally contain
-// the distribution of those values across a set of buckets.
-type IntHistogramDataPoint struct {
+// HistogramDataPoint is a single data point in a timeseries that describes the time-varying
+// values of a Histogram. A Histogram contains summary statistics for a population of values,
+// it may optionally contain the distribution of those values across a set of buckets.
+type HistogramDataPoint struct {
 	// The set of labels that uniquely identify this timeseries.
 	Labels []*v11.StringKeyValue `protobuf:"bytes,1,rep,name=labels,proto3" json:"labels,omitempty"`
-	// start_time_unix_nano is the last time when the aggregation value was reset
-	// to "zero". For some metric types this is ignored, see data types for more
-	// details.
+	// start_time_unix_nano is the time when the cumulative value was reset to zero.
 	//
-	// The aggregation value is over the time interval (start_time_unix_nano,
-	// time_unix_nano].
+	// The cumulative value is over the time interval (start_time_unix_nano, time_unix_nano].
+	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
 	//
-	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January
-	// 1970.
-	//
-	// Value of 0 indicates that the timestamp is unspecified. In that case the
-	// timestamp may be decided by the backend.
+	// Value of 0 indicates that the timestamp is unspecified. In that case the timestamp
+	// may be decided by the backend.
+	// Note: this field is always unspecified and ignored if MetricDescriptor.type==GAUGE_HISTOGRAM.
 	StartTimeUnixNano uint64 `protobuf:"fixed64,2,opt,name=start_time_unix_nano,json=startTimeUnixNano,proto3" json:"start_time_unix_nano,omitempty"`
-	// time_unix_nano is the moment when this aggregation value was reported.
-	//
-	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January
-	// 1970.
+	// time_unix_nano is the moment when this value was recorded.
+	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
 	TimeUnixNano uint64 `protobuf:"fixed64,3,opt,name=time_unix_nano,json=timeUnixNano,proto3" json:"time_unix_nano,omitempty"`
-	// count is the number of values in the population. Must be non-negative. This
-	// value must be equal to the sum of the "count" fields in buckets if a
-	// histogram is provided.
-	Count uint64 `protobuf:"fixed64,4,opt,name=count,proto3" json:"count,omitempty"`
+	// count is the number of values in the population. Must be non-negative. This value
+	// must be equal to the sum of the "count" fields in buckets if a histogram is provided.
+	Count uint64 `protobuf:"varint,4,opt,name=count,proto3" json:"count,omitempty"`
 	// sum of the values in the population. If count is zero then this field
-	// must be zero. This value must be equal to the sum of the "sum" fields in
-	// buckets if a histogram is provided.
-	Sum int64 `protobuf:"fixed64,5,opt,name=sum,proto3" json:"sum,omitempty"`
-	// bucket_counts is an optional field contains the count values of histogram
-	// for each bucket.
-	//
-	// The sum of the bucket_counts must equal the value in the count field.
-	//
-	// The number of elements in bucket_counts array must be by one greater than
-	// the number of elements in explicit_bounds array.
-	BucketCounts []uint64 `protobuf:"fixed64,6,rep,packed,name=bucket_counts,json=bucketCounts,proto3" json:"bucket_counts,omitempty"`
-	// explicit_bounds specifies buckets with explicitly defined bounds for values.
-	// The bucket boundaries are described by "bounds" field.
-	//
-	// This defines size(bounds) + 1 (= N) buckets. The boundaries for bucket
-	// at index i are:
-	//
-	// (-infinity, bounds[i]) for i == 0
-	// [bounds[i-1], bounds[i]) for 0 < i < N-1
-	// [bounds[i], +infinity) for i == N-1
-	// The values in bounds array must be strictly increasing.
-	//
-	// Note: only [a, b) intervals are currently supported for each bucket except the first one.
-	// If we decide to also support (a, b] intervals we should add support for these by defining
-	// a boolean value which decides what type of intervals to use.
-	ExplicitBounds []float64 `protobuf:"fixed64,7,rep,packed,name=explicit_bounds,json=explicitBounds,proto3" json:"explicit_bounds,omitempty"`
-	// (Optional) List of exemplars collected from
-	// measurements that were used to form the data point
-	Exemplars            []*IntExemplar `protobuf:"bytes,8,rep,name=exemplars,proto3" json:"exemplars,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
-}
-
-func (m *IntHistogramDataPoint) Reset()         { *m = IntHistogramDataPoint{} }
-func (m *IntHistogramDataPoint) String() string { return proto.CompactTextString(m) }
-func (*IntHistogramDataPoint) ProtoMessage()    {}
-func (*IntHistogramDataPoint) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c3112f9fa006917, []int{11}
-}
-func (m *IntHistogramDataPoint) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_IntHistogramDataPoint.Unmarshal(m, b)
-}
-func (m *IntHistogramDataPoint) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_IntHistogramDataPoint.Marshal(b, m, deterministic)
-}
-func (m *IntHistogramDataPoint) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IntHistogramDataPoint.Merge(m, src)
-}
-func (m *IntHistogramDataPoint) XXX_Size() int {
-	return xxx_messageInfo_IntHistogramDataPoint.Size(m)
-}
-func (m *IntHistogramDataPoint) XXX_DiscardUnknown() {
-	xxx_messageInfo_IntHistogramDataPoint.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_IntHistogramDataPoint proto.InternalMessageInfo
-
-func (m *IntHistogramDataPoint) GetLabels() []*v11.StringKeyValue {
-	if m != nil {
-		return m.Labels
-	}
-	return nil
-}
-
-func (m *IntHistogramDataPoint) GetStartTimeUnixNano() uint64 {
-	if m != nil {
-		return m.StartTimeUnixNano
-	}
-	return 0
-}
-
-func (m *IntHistogramDataPoint) GetTimeUnixNano() uint64 {
-	if m != nil {
-		return m.TimeUnixNano
-	}
-	return 0
-}
-
-func (m *IntHistogramDataPoint) GetCount() uint64 {
-	if m != nil {
-		return m.Count
-	}
-	return 0
-}
-
-func (m *IntHistogramDataPoint) GetSum() int64 {
-	if m != nil {
-		return m.Sum
-	}
-	return 0
-}
-
-func (m *IntHistogramDataPoint) GetBucketCounts() []uint64 {
-	if m != nil {
-		return m.BucketCounts
-	}
-	return nil
-}
-
-func (m *IntHistogramDataPoint) GetExplicitBounds() []float64 {
-	if m != nil {
-		return m.ExplicitBounds
-	}
-	return nil
-}
-
-func (m *IntHistogramDataPoint) GetExemplars() []*IntExemplar {
-	if m != nil {
-		return m.Exemplars
-	}
-	return nil
-}
-
-// HistogramDataPoint is a single data point in a timeseries that describes the
-// time-varying values of a Histogram of double values. A Histogram contains
-// summary statistics for a population of values, it may optionally contain the
-// distribution of those values across a set of buckets.
-type DoubleHistogramDataPoint struct {
-	// The set of labels that uniquely identify this timeseries.
-	Labels []*v11.StringKeyValue `protobuf:"bytes,1,rep,name=labels,proto3" json:"labels,omitempty"`
-	// start_time_unix_nano is the last time when the aggregation value was reset
-	// to "zero". For some metric types this is ignored, see data types for more
-	// details.
-	//
-	// The aggregation value is over the time interval (start_time_unix_nano,
-	// time_unix_nano].
-	//
-	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January
-	// 1970.
-	//
-	// Value of 0 indicates that the timestamp is unspecified. In that case the
-	// timestamp may be decided by the backend.
-	StartTimeUnixNano uint64 `protobuf:"fixed64,2,opt,name=start_time_unix_nano,json=startTimeUnixNano,proto3" json:"start_time_unix_nano,omitempty"`
-	// time_unix_nano is the moment when this aggregation value was reported.
-	//
-	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January
-	// 1970.
-	TimeUnixNano uint64 `protobuf:"fixed64,3,opt,name=time_unix_nano,json=timeUnixNano,proto3" json:"time_unix_nano,omitempty"`
-	// count is the number of values in the population. Must be non-negative. This
-	// value must be equal to the sum of the "count" fields in buckets if a
-	// histogram is provided.
-	Count uint64 `protobuf:"fixed64,4,opt,name=count,proto3" json:"count,omitempty"`
-	// sum of the values in the population. If count is zero then this field
-	// must be zero. This value must be equal to the sum of the "sum" fields in
-	// buckets if a histogram is provided.
+	// must be zero. This value must be equal to the sum of the "sum" fields in buckets if
+	// a histogram is provided.
 	Sum float64 `protobuf:"fixed64,5,opt,name=sum,proto3" json:"sum,omitempty"`
-	// bucket_counts is an optional field contains the count values of histogram
-	// for each bucket.
+	// buckets is an optional field contains the values of histogram for each bucket.
 	//
-	// The sum of the bucket_counts must equal the value in the count field.
+	// The sum of the values in the buckets "count" field must equal the value in the count field.
 	//
-	// The number of elements in bucket_counts array must be by one greater than
-	// the number of elements in explicit_bounds array.
-	BucketCounts []uint64 `protobuf:"fixed64,6,rep,packed,name=bucket_counts,json=bucketCounts,proto3" json:"bucket_counts,omitempty"`
+	// The number of elements in buckets array must be by one greater than the
+	// number of elements in bucket_bounds array.
+	//
+	// Note: if HistogramDataPoint.bucket_options defines bucket bounds then this field
+	// must also be present and number of elements in this field must be equal to the
+	// number of buckets defined by bucket_options.
+	Buckets []*HistogramDataPoint_Bucket `protobuf:"bytes,6,rep,name=buckets,proto3" json:"buckets,omitempty"`
 	// explicit_bounds specifies buckets with explicitly defined bounds for values.
 	// The bucket boundaries are described by "bounds" field.
 	//
 	// This defines size(bounds) + 1 (= N) buckets. The boundaries for bucket
 	// at index i are:
 	//
-	// (-infinity, bounds[i]) for i == 0
+	// [0, bounds[i]) for i == 0
 	// [bounds[i-1], bounds[i]) for 0 < i < N-1
 	// [bounds[i], +infinity) for i == N-1
-	// The values in bounds array must be strictly increasing.
+	// The values in bounds array must be strictly increasing and > 0.
 	//
-	// Note: only [a, b) intervals are currently supported for each bucket except the first one.
-	// If we decide to also support (a, b] intervals we should add support for these by defining
-	// a boolean value which decides what type of intervals to use.
-	ExplicitBounds []float64 `protobuf:"fixed64,7,rep,packed,name=explicit_bounds,json=explicitBounds,proto3" json:"explicit_bounds,omitempty"`
-	// (Optional) List of exemplars collected from
-	// measurements that were used to form the data point
-	Exemplars            []*DoubleExemplar `protobuf:"bytes,8,rep,name=exemplars,proto3" json:"exemplars,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	// Note: only [a, b) intervals are currently supported for each bucket. If we decides
+	// to also support (a, b] intervals we should add support for these by defining a boolean
+	// value which decides what type of intervals to use.
+	ExplicitBounds       []float64 `protobuf:"fixed64,7,rep,packed,name=explicit_bounds,json=explicitBounds,proto3" json:"explicit_bounds,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
+	XXX_unrecognized     []byte    `json:"-"`
+	XXX_sizecache        int32     `json:"-"`
 }
 
-func (m *DoubleHistogramDataPoint) Reset()         { *m = DoubleHistogramDataPoint{} }
-func (m *DoubleHistogramDataPoint) String() string { return proto.CompactTextString(m) }
-func (*DoubleHistogramDataPoint) ProtoMessage()    {}
-func (*DoubleHistogramDataPoint) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c3112f9fa006917, []int{12}
+func (m *HistogramDataPoint) Reset()         { *m = HistogramDataPoint{} }
+func (m *HistogramDataPoint) String() string { return proto.CompactTextString(m) }
+func (*HistogramDataPoint) ProtoMessage()    {}
+func (*HistogramDataPoint) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c3112f9fa006917, []int{6}
 }
-func (m *DoubleHistogramDataPoint) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DoubleHistogramDataPoint.Unmarshal(m, b)
+func (m *HistogramDataPoint) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_HistogramDataPoint.Unmarshal(m, b)
 }
-func (m *DoubleHistogramDataPoint) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DoubleHistogramDataPoint.Marshal(b, m, deterministic)
+func (m *HistogramDataPoint) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_HistogramDataPoint.Marshal(b, m, deterministic)
 }
-func (m *DoubleHistogramDataPoint) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DoubleHistogramDataPoint.Merge(m, src)
+func (m *HistogramDataPoint) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HistogramDataPoint.Merge(m, src)
 }
-func (m *DoubleHistogramDataPoint) XXX_Size() int {
-	return xxx_messageInfo_DoubleHistogramDataPoint.Size(m)
+func (m *HistogramDataPoint) XXX_Size() int {
+	return xxx_messageInfo_HistogramDataPoint.Size(m)
 }
-func (m *DoubleHistogramDataPoint) XXX_DiscardUnknown() {
-	xxx_messageInfo_DoubleHistogramDataPoint.DiscardUnknown(m)
+func (m *HistogramDataPoint) XXX_DiscardUnknown() {
+	xxx_messageInfo_HistogramDataPoint.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DoubleHistogramDataPoint proto.InternalMessageInfo
+var xxx_messageInfo_HistogramDataPoint proto.InternalMessageInfo
 
-func (m *DoubleHistogramDataPoint) GetLabels() []*v11.StringKeyValue {
+func (m *HistogramDataPoint) GetLabels() []*v11.StringKeyValue {
 	if m != nil {
 		return m.Labels
 	}
 	return nil
 }
 
-func (m *DoubleHistogramDataPoint) GetStartTimeUnixNano() uint64 {
+func (m *HistogramDataPoint) GetStartTimeUnixNano() uint64 {
 	if m != nil {
 		return m.StartTimeUnixNano
 	}
 	return 0
 }
 
-func (m *DoubleHistogramDataPoint) GetTimeUnixNano() uint64 {
+func (m *HistogramDataPoint) GetTimeUnixNano() uint64 {
 	if m != nil {
 		return m.TimeUnixNano
 	}
 	return 0
 }
 
-func (m *DoubleHistogramDataPoint) GetCount() uint64 {
+func (m *HistogramDataPoint) GetCount() uint64 {
 	if m != nil {
 		return m.Count
 	}
 	return 0
 }
 
-func (m *DoubleHistogramDataPoint) GetSum() float64 {
+func (m *HistogramDataPoint) GetSum() float64 {
 	if m != nil {
 		return m.Sum
 	}
 	return 0
 }
 
-func (m *DoubleHistogramDataPoint) GetBucketCounts() []uint64 {
+func (m *HistogramDataPoint) GetBuckets() []*HistogramDataPoint_Bucket {
 	if m != nil {
-		return m.BucketCounts
+		return m.Buckets
 	}
 	return nil
 }
 
-func (m *DoubleHistogramDataPoint) GetExplicitBounds() []float64 {
+func (m *HistogramDataPoint) GetExplicitBounds() []float64 {
 	if m != nil {
 		return m.ExplicitBounds
 	}
 	return nil
 }
 
-func (m *DoubleHistogramDataPoint) GetExemplars() []*DoubleExemplar {
+// Bucket contains values for a bucket.
+type HistogramDataPoint_Bucket struct {
+	// The number of values in each bucket of the histogram, as described by
+	// bucket_options.
+	Count uint64 `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
+	// exemplar is an optional representative value of the bucket.
+	Exemplar             *HistogramDataPoint_Bucket_Exemplar `protobuf:"bytes,2,opt,name=exemplar,proto3" json:"exemplar,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                            `json:"-"`
+	XXX_unrecognized     []byte                              `json:"-"`
+	XXX_sizecache        int32                               `json:"-"`
+}
+
+func (m *HistogramDataPoint_Bucket) Reset()         { *m = HistogramDataPoint_Bucket{} }
+func (m *HistogramDataPoint_Bucket) String() string { return proto.CompactTextString(m) }
+func (*HistogramDataPoint_Bucket) ProtoMessage()    {}
+func (*HistogramDataPoint_Bucket) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c3112f9fa006917, []int{6, 0}
+}
+func (m *HistogramDataPoint_Bucket) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_HistogramDataPoint_Bucket.Unmarshal(m, b)
+}
+func (m *HistogramDataPoint_Bucket) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_HistogramDataPoint_Bucket.Marshal(b, m, deterministic)
+}
+func (m *HistogramDataPoint_Bucket) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HistogramDataPoint_Bucket.Merge(m, src)
+}
+func (m *HistogramDataPoint_Bucket) XXX_Size() int {
+	return xxx_messageInfo_HistogramDataPoint_Bucket.Size(m)
+}
+func (m *HistogramDataPoint_Bucket) XXX_DiscardUnknown() {
+	xxx_messageInfo_HistogramDataPoint_Bucket.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_HistogramDataPoint_Bucket proto.InternalMessageInfo
+
+func (m *HistogramDataPoint_Bucket) GetCount() uint64 {
 	if m != nil {
-		return m.Exemplars
-	}
-	return nil
-}
-
-// A representation of an exemplar, which is a sample input int measurement.
-// Exemplars also hold information about the environment when the measurement
-// was recorded, for example the span and trace ID of the active span when the
-// exemplar was recorded.
-type IntExemplar struct {
-	// The set of labels that were filtered out by the aggregator, but recorded
-	// alongside the original measurement. Only labels that were filtered out
-	// by the aggregator should be included
-	FilteredLabels []*v11.StringKeyValue `protobuf:"bytes,1,rep,name=filtered_labels,json=filteredLabels,proto3" json:"filtered_labels,omitempty"`
-	// time_unix_nano is the exact time when this exemplar was recorded
-	//
-	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January
-	// 1970.
-	TimeUnixNano uint64 `protobuf:"fixed64,2,opt,name=time_unix_nano,json=timeUnixNano,proto3" json:"time_unix_nano,omitempty"`
-	// Numerical int value of the measurement that was recorded.
-	Value int64 `protobuf:"fixed64,3,opt,name=value,proto3" json:"value,omitempty"`
-	// (Optional) Span ID of the exemplar trace.
-	// span_id may be missing if the measurement is not recorded inside a trace
-	// or if the trace is not sampled.
-	SpanId []byte `protobuf:"bytes,4,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
-	// (Optional) Trace ID of the exemplar trace.
-	// trace_id may be missing if the measurement is not recorded inside a trace
-	// or if the trace is not sampled.
-	TraceId              []byte   `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *IntExemplar) Reset()         { *m = IntExemplar{} }
-func (m *IntExemplar) String() string { return proto.CompactTextString(m) }
-func (*IntExemplar) ProtoMessage()    {}
-func (*IntExemplar) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c3112f9fa006917, []int{13}
-}
-func (m *IntExemplar) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_IntExemplar.Unmarshal(m, b)
-}
-func (m *IntExemplar) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_IntExemplar.Marshal(b, m, deterministic)
-}
-func (m *IntExemplar) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IntExemplar.Merge(m, src)
-}
-func (m *IntExemplar) XXX_Size() int {
-	return xxx_messageInfo_IntExemplar.Size(m)
-}
-func (m *IntExemplar) XXX_DiscardUnknown() {
-	xxx_messageInfo_IntExemplar.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_IntExemplar proto.InternalMessageInfo
-
-func (m *IntExemplar) GetFilteredLabels() []*v11.StringKeyValue {
-	if m != nil {
-		return m.FilteredLabels
-	}
-	return nil
-}
-
-func (m *IntExemplar) GetTimeUnixNano() uint64 {
-	if m != nil {
-		return m.TimeUnixNano
+		return m.Count
 	}
 	return 0
 }
 
-func (m *IntExemplar) GetValue() int64 {
+func (m *HistogramDataPoint_Bucket) GetExemplar() *HistogramDataPoint_Bucket_Exemplar {
+	if m != nil {
+		return m.Exemplar
+	}
+	return nil
+}
+
+// Exemplars are example points that may be used to annotate aggregated
+// Histogram values. They are metadata that gives information about a
+// particular value added to a Histogram bucket.
+type HistogramDataPoint_Bucket_Exemplar struct {
+	// Value of the exemplar point. It determines which bucket the exemplar belongs to.
+	// If bucket_options define bounds for this bucket then this value must be within
+	// the defined bounds.
+	Value float64 `protobuf:"fixed64,1,opt,name=value,proto3" json:"value,omitempty"`
+	// time_unix_nano is the moment when this exemplar was recorded.
+	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
+	TimeUnixNano uint64 `protobuf:"fixed64,2,opt,name=time_unix_nano,json=timeUnixNano,proto3" json:"time_unix_nano,omitempty"`
+	// exemplar_attachments are contextual information about the example value.
+	// Keys in this list must be unique.
+	Attachments          []*v11.StringKeyValue `protobuf:"bytes,3,rep,name=attachments,proto3" json:"attachments,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *HistogramDataPoint_Bucket_Exemplar) Reset()         { *m = HistogramDataPoint_Bucket_Exemplar{} }
+func (m *HistogramDataPoint_Bucket_Exemplar) String() string { return proto.CompactTextString(m) }
+func (*HistogramDataPoint_Bucket_Exemplar) ProtoMessage()    {}
+func (*HistogramDataPoint_Bucket_Exemplar) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c3112f9fa006917, []int{6, 0, 0}
+}
+func (m *HistogramDataPoint_Bucket_Exemplar) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_HistogramDataPoint_Bucket_Exemplar.Unmarshal(m, b)
+}
+func (m *HistogramDataPoint_Bucket_Exemplar) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_HistogramDataPoint_Bucket_Exemplar.Marshal(b, m, deterministic)
+}
+func (m *HistogramDataPoint_Bucket_Exemplar) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HistogramDataPoint_Bucket_Exemplar.Merge(m, src)
+}
+func (m *HistogramDataPoint_Bucket_Exemplar) XXX_Size() int {
+	return xxx_messageInfo_HistogramDataPoint_Bucket_Exemplar.Size(m)
+}
+func (m *HistogramDataPoint_Bucket_Exemplar) XXX_DiscardUnknown() {
+	xxx_messageInfo_HistogramDataPoint_Bucket_Exemplar.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_HistogramDataPoint_Bucket_Exemplar proto.InternalMessageInfo
+
+func (m *HistogramDataPoint_Bucket_Exemplar) GetValue() float64 {
 	if m != nil {
 		return m.Value
 	}
 	return 0
 }
 
-func (m *IntExemplar) GetSpanId() []byte {
-	if m != nil {
-		return m.SpanId
-	}
-	return nil
-}
-
-func (m *IntExemplar) GetTraceId() []byte {
-	if m != nil {
-		return m.TraceId
-	}
-	return nil
-}
-
-// A representation of an exemplar, which is a sample input double measurement.
-// Exemplars also hold information about the environment when the measurement
-// was recorded, for example the span and trace ID of the active span when the
-// exemplar was recorded.
-type DoubleExemplar struct {
-	// The set of labels that were filtered out by the aggregator, but recorded
-	// alongside the original measurement. Only labels that were filtered out
-	// by the aggregator should be included
-	FilteredLabels []*v11.StringKeyValue `protobuf:"bytes,1,rep,name=filtered_labels,json=filteredLabels,proto3" json:"filtered_labels,omitempty"`
-	// time_unix_nano is the exact time when this exemplar was recorded
-	//
-	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January
-	// 1970.
-	TimeUnixNano uint64 `protobuf:"fixed64,2,opt,name=time_unix_nano,json=timeUnixNano,proto3" json:"time_unix_nano,omitempty"`
-	// Numerical double value of the measurement that was recorded.
-	Value float64 `protobuf:"fixed64,3,opt,name=value,proto3" json:"value,omitempty"`
-	// (Optional) Span ID of the exemplar trace.
-	// span_id may be missing if the measurement is not recorded inside a trace
-	// or if the trace is not sampled.
-	SpanId []byte `protobuf:"bytes,4,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
-	// (Optional) Trace ID of the exemplar trace.
-	// trace_id may be missing if the measurement is not recorded inside a trace
-	// or if the trace is not sampled.
-	TraceId              []byte   `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *DoubleExemplar) Reset()         { *m = DoubleExemplar{} }
-func (m *DoubleExemplar) String() string { return proto.CompactTextString(m) }
-func (*DoubleExemplar) ProtoMessage()    {}
-func (*DoubleExemplar) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c3112f9fa006917, []int{14}
-}
-func (m *DoubleExemplar) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DoubleExemplar.Unmarshal(m, b)
-}
-func (m *DoubleExemplar) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DoubleExemplar.Marshal(b, m, deterministic)
-}
-func (m *DoubleExemplar) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DoubleExemplar.Merge(m, src)
-}
-func (m *DoubleExemplar) XXX_Size() int {
-	return xxx_messageInfo_DoubleExemplar.Size(m)
-}
-func (m *DoubleExemplar) XXX_DiscardUnknown() {
-	xxx_messageInfo_DoubleExemplar.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DoubleExemplar proto.InternalMessageInfo
-
-func (m *DoubleExemplar) GetFilteredLabels() []*v11.StringKeyValue {
-	if m != nil {
-		return m.FilteredLabels
-	}
-	return nil
-}
-
-func (m *DoubleExemplar) GetTimeUnixNano() uint64 {
+func (m *HistogramDataPoint_Bucket_Exemplar) GetTimeUnixNano() uint64 {
 	if m != nil {
 		return m.TimeUnixNano
 	}
 	return 0
 }
 
-func (m *DoubleExemplar) GetValue() float64 {
+func (m *HistogramDataPoint_Bucket_Exemplar) GetAttachments() []*v11.StringKeyValue {
 	if m != nil {
-		return m.Value
+		return m.Attachments
+	}
+	return nil
+}
+
+// SummaryDataPoint is a single data point in a timeseries that describes the time-varying
+// values of a Summary metric.
+type SummaryDataPoint struct {
+	// The set of labels that uniquely identify this timeseries.
+	Labels []*v11.StringKeyValue `protobuf:"bytes,1,rep,name=labels,proto3" json:"labels,omitempty"`
+	// start_time_unix_nano is the time when the cumulative value was reset to zero.
+	//
+	// The cumulative value is over the time interval (start_time_unix_nano, time_unix_nano].
+	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
+	//
+	// Value of 0 indicates that the timestamp is unspecified. In that case the timestamp
+	// may be decided by the backend.
+	StartTimeUnixNano uint64 `protobuf:"fixed64,2,opt,name=start_time_unix_nano,json=startTimeUnixNano,proto3" json:"start_time_unix_nano,omitempty"`
+	// time_unix_nano is the moment when this value was recorded.
+	// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
+	TimeUnixNano uint64 `protobuf:"fixed64,3,opt,name=time_unix_nano,json=timeUnixNano,proto3" json:"time_unix_nano,omitempty"`
+	// The total number of recorded values since start_time. Optional since
+	// some systems don't expose this.
+	Count uint64 `protobuf:"varint,4,opt,name=count,proto3" json:"count,omitempty"`
+	// The total sum of recorded values since start_time. Optional since some
+	// systems don't expose this. If count is zero then this field must be zero.
+	Sum float64 `protobuf:"fixed64,5,opt,name=sum,proto3" json:"sum,omitempty"`
+	// A list of values at different percentiles of the distribution calculated
+	// from the current snapshot. The percentiles must be strictly increasing.
+	PercentileValues     []*SummaryDataPoint_ValueAtPercentile `protobuf:"bytes,6,rep,name=percentile_values,json=percentileValues,proto3" json:"percentile_values,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                              `json:"-"`
+	XXX_unrecognized     []byte                                `json:"-"`
+	XXX_sizecache        int32                                 `json:"-"`
+}
+
+func (m *SummaryDataPoint) Reset()         { *m = SummaryDataPoint{} }
+func (m *SummaryDataPoint) String() string { return proto.CompactTextString(m) }
+func (*SummaryDataPoint) ProtoMessage()    {}
+func (*SummaryDataPoint) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c3112f9fa006917, []int{7}
+}
+func (m *SummaryDataPoint) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SummaryDataPoint.Unmarshal(m, b)
+}
+func (m *SummaryDataPoint) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SummaryDataPoint.Marshal(b, m, deterministic)
+}
+func (m *SummaryDataPoint) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SummaryDataPoint.Merge(m, src)
+}
+func (m *SummaryDataPoint) XXX_Size() int {
+	return xxx_messageInfo_SummaryDataPoint.Size(m)
+}
+func (m *SummaryDataPoint) XXX_DiscardUnknown() {
+	xxx_messageInfo_SummaryDataPoint.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SummaryDataPoint proto.InternalMessageInfo
+
+func (m *SummaryDataPoint) GetLabels() []*v11.StringKeyValue {
+	if m != nil {
+		return m.Labels
+	}
+	return nil
+}
+
+func (m *SummaryDataPoint) GetStartTimeUnixNano() uint64 {
+	if m != nil {
+		return m.StartTimeUnixNano
 	}
 	return 0
 }
 
-func (m *DoubleExemplar) GetSpanId() []byte {
+func (m *SummaryDataPoint) GetTimeUnixNano() uint64 {
 	if m != nil {
-		return m.SpanId
+		return m.TimeUnixNano
+	}
+	return 0
+}
+
+func (m *SummaryDataPoint) GetCount() uint64 {
+	if m != nil {
+		return m.Count
+	}
+	return 0
+}
+
+func (m *SummaryDataPoint) GetSum() float64 {
+	if m != nil {
+		return m.Sum
+	}
+	return 0
+}
+
+func (m *SummaryDataPoint) GetPercentileValues() []*SummaryDataPoint_ValueAtPercentile {
+	if m != nil {
+		return m.PercentileValues
 	}
 	return nil
 }
 
-func (m *DoubleExemplar) GetTraceId() []byte {
+// Represents the value at a given percentile of a distribution.
+//
+// To record Min and Max values following conventions are used:
+// - The 100th percentile is equivalent to the maximum value observed.
+// - The 0th percentile is equivalent to the minimum value observed.
+//
+// See the following issue for more context:
+// https://github.com/open-telemetry/opentelemetry-proto/issues/125
+type SummaryDataPoint_ValueAtPercentile struct {
+	// The percentile of a distribution. Must be in the interval
+	// [0.0, 100.0].
+	Percentile float64 `protobuf:"fixed64,1,opt,name=percentile,proto3" json:"percentile,omitempty"`
+	// The value at the given percentile of a distribution.
+	Value                float64  `protobuf:"fixed64,2,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SummaryDataPoint_ValueAtPercentile) Reset()         { *m = SummaryDataPoint_ValueAtPercentile{} }
+func (m *SummaryDataPoint_ValueAtPercentile) String() string { return proto.CompactTextString(m) }
+func (*SummaryDataPoint_ValueAtPercentile) ProtoMessage()    {}
+func (*SummaryDataPoint_ValueAtPercentile) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c3112f9fa006917, []int{7, 0}
+}
+func (m *SummaryDataPoint_ValueAtPercentile) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SummaryDataPoint_ValueAtPercentile.Unmarshal(m, b)
+}
+func (m *SummaryDataPoint_ValueAtPercentile) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SummaryDataPoint_ValueAtPercentile.Marshal(b, m, deterministic)
+}
+func (m *SummaryDataPoint_ValueAtPercentile) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SummaryDataPoint_ValueAtPercentile.Merge(m, src)
+}
+func (m *SummaryDataPoint_ValueAtPercentile) XXX_Size() int {
+	return xxx_messageInfo_SummaryDataPoint_ValueAtPercentile.Size(m)
+}
+func (m *SummaryDataPoint_ValueAtPercentile) XXX_DiscardUnknown() {
+	xxx_messageInfo_SummaryDataPoint_ValueAtPercentile.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SummaryDataPoint_ValueAtPercentile proto.InternalMessageInfo
+
+func (m *SummaryDataPoint_ValueAtPercentile) GetPercentile() float64 {
 	if m != nil {
-		return m.TraceId
+		return m.Percentile
 	}
-	return nil
+	return 0
+}
+
+func (m *SummaryDataPoint_ValueAtPercentile) GetValue() float64 {
+	if m != nil {
+		return m.Value
+	}
+	return 0
 }
 
 func init() {
-	proto.RegisterEnum("opentelemetry.proto.metrics.v1.AggregationTemporality", AggregationTemporality_name, AggregationTemporality_value)
+	proto.RegisterEnum("opentelemetry.proto.metrics.v1.MetricDescriptor_Type", MetricDescriptor_Type_name, MetricDescriptor_Type_value)
+	proto.RegisterEnum("opentelemetry.proto.metrics.v1.MetricDescriptor_Temporality", MetricDescriptor_Temporality_name, MetricDescriptor_Temporality_value)
 	proto.RegisterType((*ResourceMetrics)(nil), "opentelemetry.proto.metrics.v1.ResourceMetrics")
 	proto.RegisterType((*InstrumentationLibraryMetrics)(nil), "opentelemetry.proto.metrics.v1.InstrumentationLibraryMetrics")
 	proto.RegisterType((*Metric)(nil), "opentelemetry.proto.metrics.v1.Metric")
-	proto.RegisterType((*IntGauge)(nil), "opentelemetry.proto.metrics.v1.IntGauge")
-	proto.RegisterType((*DoubleGauge)(nil), "opentelemetry.proto.metrics.v1.DoubleGauge")
-	proto.RegisterType((*IntSum)(nil), "opentelemetry.proto.metrics.v1.IntSum")
-	proto.RegisterType((*DoubleSum)(nil), "opentelemetry.proto.metrics.v1.DoubleSum")
-	proto.RegisterType((*IntHistogram)(nil), "opentelemetry.proto.metrics.v1.IntHistogram")
-	proto.RegisterType((*DoubleHistogram)(nil), "opentelemetry.proto.metrics.v1.DoubleHistogram")
-	proto.RegisterType((*IntDataPoint)(nil), "opentelemetry.proto.metrics.v1.IntDataPoint")
+	proto.RegisterType((*MetricDescriptor)(nil), "opentelemetry.proto.metrics.v1.MetricDescriptor")
+	proto.RegisterType((*Int64DataPoint)(nil), "opentelemetry.proto.metrics.v1.Int64DataPoint")
 	proto.RegisterType((*DoubleDataPoint)(nil), "opentelemetry.proto.metrics.v1.DoubleDataPoint")
-	proto.RegisterType((*IntHistogramDataPoint)(nil), "opentelemetry.proto.metrics.v1.IntHistogramDataPoint")
-	proto.RegisterType((*DoubleHistogramDataPoint)(nil), "opentelemetry.proto.metrics.v1.DoubleHistogramDataPoint")
-	proto.RegisterType((*IntExemplar)(nil), "opentelemetry.proto.metrics.v1.IntExemplar")
-	proto.RegisterType((*DoubleExemplar)(nil), "opentelemetry.proto.metrics.v1.DoubleExemplar")
+	proto.RegisterType((*HistogramDataPoint)(nil), "opentelemetry.proto.metrics.v1.HistogramDataPoint")
+	proto.RegisterType((*HistogramDataPoint_Bucket)(nil), "opentelemetry.proto.metrics.v1.HistogramDataPoint.Bucket")
+	proto.RegisterType((*HistogramDataPoint_Bucket_Exemplar)(nil), "opentelemetry.proto.metrics.v1.HistogramDataPoint.Bucket.Exemplar")
+	proto.RegisterType((*SummaryDataPoint)(nil), "opentelemetry.proto.metrics.v1.SummaryDataPoint")
+	proto.RegisterType((*SummaryDataPoint_ValueAtPercentile)(nil), "opentelemetry.proto.metrics.v1.SummaryDataPoint.ValueAtPercentile")
 }
 
 func init() {
@@ -1430,71 +1052,69 @@ func init() {
 }
 
 var fileDescriptor_3c3112f9fa006917 = []byte{
-	// 1056 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x58, 0x41, 0x4f, 0xe3, 0xc6,
-	0x17, 0xc7, 0x09, 0x38, 0xc9, 0x4b, 0x16, 0xf2, 0x1f, 0xed, 0x1f, 0xdc, 0x95, 0x68, 0xc1, 0x5b,
-	0xb1, 0x74, 0x77, 0x49, 0x04, 0xd5, 0x56, 0xbd, 0x54, 0x6a, 0x80, 0x14, 0xd2, 0x06, 0x36, 0x1a,
-	0x02, 0x12, 0x55, 0x25, 0x6b, 0x12, 0x4f, 0xdd, 0x51, 0xed, 0x99, 0xc8, 0x1e, 0x23, 0xf8, 0x00,
-	0xbd, 0xb5, 0xa7, 0x7e, 0x98, 0x7e, 0x8e, 0x1e, 0xaa, 0xf6, 0x52, 0xa9, 0xf7, 0x9e, 0x7a, 0xe9,
-	0xa9, 0x87, 0xca, 0x63, 0x1b, 0x92, 0xc5, 0x24, 0x59, 0xb1, 0x95, 0xb2, 0xb7, 0x37, 0x6f, 0xde,
-	0xfb, 0xf9, 0xf7, 0x7e, 0xef, 0x3d, 0x1b, 0x02, 0xcf, 0xc5, 0x80, 0x72, 0x49, 0x5d, 0xea, 0x51,
-	0xe9, 0x5f, 0xd5, 0x07, 0xbe, 0x90, 0xa2, 0x1e, 0xd9, 0xac, 0x1f, 0xd4, 0x2f, 0xb6, 0x53, 0xb3,
-	0xa6, 0x2e, 0xd0, 0xbb, 0x23, 0xd1, 0xb1, 0xb3, 0x96, 0x86, 0x5c, 0x6c, 0x3f, 0x7a, 0x9a, 0x85,
-	0xd6, 0x17, 0x9e, 0x27, 0x78, 0x04, 0x16, 0x5b, 0x71, 0xda, 0xa3, 0x5a, 0x56, 0xac, 0x4f, 0x03,
-	0x11, 0xfa, 0x7d, 0x1a, 0x45, 0xa7, 0x76, 0x1c, 0x6f, 0xfe, 0xa1, 0xc1, 0x12, 0x4e, 0x5c, 0x47,
-	0xf1, 0x23, 0x51, 0x13, 0x8a, 0x69, 0x94, 0xa1, 0xad, 0x69, 0x9b, 0xe5, 0x9d, 0x0f, 0x6a, 0x59,
-	0x14, 0xaf, 0xa1, 0x2e, 0xb6, 0x6b, 0x29, 0x06, 0xbe, 0x4e, 0x45, 0xdf, 0x69, 0xf0, 0x1e, 0xe3,
-	0x81, 0xf4, 0x43, 0x8f, 0x72, 0x49, 0x24, 0x13, 0xdc, 0x72, 0x59, 0xcf, 0x27, 0xfe, 0x95, 0x95,
-	0x54, 0x67, 0xe4, 0xd6, 0xf2, 0x9b, 0xe5, 0x9d, 0x4f, 0x6a, 0xe3, 0x15, 0xa8, 0xb5, 0x46, 0x61,
-	0xda, 0x31, 0x4a, 0xc2, 0x17, 0xaf, 0xb2, 0x71, 0xd7, 0xe6, 0xcf, 0x1a, 0xac, 0x8e, 0x05, 0x40,
-	0x1c, 0x56, 0xee, 0x20, 0x9a, 0xd4, 0xff, 0x22, 0x93, 0x60, 0x22, 0xfc, 0x9d, 0xfc, 0xf0, 0x72,
-	0x36, 0x31, 0xf4, 0x29, 0x14, 0x46, 0x05, 0xd8, 0x98, 0x24, 0x40, 0xcc, 0x14, 0xa7, 0x69, 0xe6,
-	0x4f, 0xf3, 0xa0, 0xc7, 0x3e, 0x84, 0x60, 0x9e, 0x13, 0x2f, 0xee, 0x54, 0x09, 0x2b, 0x1b, 0xad,
-	0x41, 0xd9, 0xa6, 0x41, 0xdf, 0x67, 0x83, 0xe8, 0xb1, 0x46, 0x4e, 0x5d, 0x0d, 0xbb, 0xa2, 0xac,
-	0x90, 0x33, 0x69, 0xe4, 0xe3, 0xac, 0xc8, 0x46, 0x07, 0x50, 0x62, 0x5c, 0x5a, 0x0e, 0x09, 0x1d,
-	0x6a, 0xcc, 0xab, 0xc2, 0x37, 0x27, 0x77, 0x46, 0x1e, 0x44, 0xf1, 0x87, 0x73, 0xb8, 0xc8, 0x12,
-	0x1b, 0x75, 0xa0, 0x62, 0x8b, 0xb0, 0xe7, 0xd2, 0x04, 0x6b, 0x41, 0x61, 0x3d, 0x9b, 0x84, 0xb5,
-	0xaf, 0x72, 0x52, 0xb8, 0xb2, 0x7d, 0x73, 0x44, 0x0d, 0x28, 0x44, 0xd4, 0x82, 0xd0, 0x33, 0x74,
-	0x05, 0xb6, 0x31, 0x05, 0xb1, 0x93, 0xd0, 0x3b, 0x9c, 0xc3, 0x3a, 0x53, 0x16, 0xfa, 0x1c, 0x20,
-	0x21, 0x15, 0xa1, 0x14, 0xc6, 0xcc, 0xf5, 0x2d, 0x4a, 0x31, 0x50, 0xc9, 0x4e, 0x0f, 0xe8, 0x04,
-	0x1e, 0x44, 0x74, 0xbe, 0x61, 0x81, 0x14, 0x8e, 0x4f, 0x3c, 0xa3, 0xa8, 0xe0, 0x9e, 0x4f, 0x41,
-	0xea, 0x30, 0xcd, 0x39, 0x9c, 0xc3, 0x15, 0x36, 0x74, 0x46, 0x5f, 0x41, 0x35, 0x21, 0x78, 0x83,
-	0x5b, 0x52, 0xb8, 0xf5, 0xe9, 0x68, 0x0e, 0x43, 0x2f, 0xd9, 0xa3, 0xae, 0x5d, 0x1d, 0xe6, 0x6d,
-	0x22, 0x89, 0x79, 0x0e, 0xc5, 0xb4, 0x67, 0xe8, 0x08, 0xca, 0x91, 0xcf, 0x1a, 0x08, 0xc6, 0x65,
-	0x60, 0x68, 0x6a, 0x16, 0xa7, 0x29, 0x62, 0x9f, 0x48, 0xd2, 0x89, 0x92, 0x30, 0xd8, 0xa9, 0x19,
-	0x98, 0x16, 0x94, 0x87, 0x5a, 0x88, 0x3a, 0x59, 0xe8, 0x53, 0x96, 0x92, 0xfd, 0x80, 0x3f, 0x35,
-	0xd0, 0xe3, 0xbe, 0xbe, 0x61, 0xea, 0x48, 0xc0, 0x0a, 0x71, 0x1c, 0x9f, 0x3a, 0xf1, 0xf6, 0x4b,
-	0xea, 0x0d, 0x84, 0x4f, 0x5c, 0x26, 0xaf, 0xd4, 0xf2, 0x2c, 0xee, 0x7c, 0x34, 0x09, 0xba, 0x71,
-	0x93, 0xde, 0xbd, 0xc9, 0xc6, 0xcb, 0x24, 0xd3, 0x8f, 0xd6, 0xa1, 0xc2, 0x02, 0xcb, 0x13, 0x5c,
-	0x48, 0xc1, 0x59, 0x5f, 0xed, 0x61, 0x11, 0x97, 0x59, 0x70, 0x94, 0xba, 0xcc, 0xbf, 0x34, 0x28,
-	0x5d, 0xcf, 0xdf, 0x9b, 0x57, 0x73, 0x26, 0x6b, 0xfe, 0x55, 0x83, 0xca, 0xf0, 0x92, 0xa0, 0xb3,
-	0xac, 0xb2, 0x5f, 0xbc, 0xce, 0x9e, 0xcd, 0x46, 0xf1, 0xe6, 0xef, 0x1a, 0x2c, 0xbd, 0xb2, 0xa6,
-	0xe8, 0x3c, 0xab, 0xb8, 0x8f, 0x5f, 0x73, 0xd9, 0x67, 0xa4, 0xbe, 0x1f, 0x72, 0xaa, 0x73, 0xd7,
-	0x6c, 0x50, 0x13, 0x74, 0x97, 0xf4, 0xa8, 0x9b, 0xd6, 0xb5, 0x35, 0xe1, 0x1b, 0x7a, 0x22, 0x7d,
-	0xc6, 0x9d, 0x2f, 0xe8, 0xd5, 0x19, 0x71, 0x43, 0x8a, 0x93, 0x64, 0x54, 0x87, 0x87, 0x81, 0x24,
-	0xbe, 0xb4, 0x24, 0xf3, 0xa8, 0x15, 0x72, 0x76, 0x69, 0x71, 0xc2, 0x85, 0xaa, 0x42, 0xc7, 0xff,
-	0x53, 0x77, 0x5d, 0xe6, 0xd1, 0x53, 0xce, 0x2e, 0x8f, 0x09, 0x17, 0xe8, 0x7d, 0x58, 0x7c, 0x25,
-	0x34, 0xaf, 0x42, 0x2b, 0x72, 0x38, 0xea, 0x21, 0x2c, 0x5c, 0x44, 0xcf, 0x51, 0xdf, 0xb9, 0x2a,
-	0x8e, 0x0f, 0xa8, 0x05, 0x25, 0x7a, 0x49, 0xbd, 0x81, 0x4b, 0xfc, 0xc0, 0x58, 0x50, 0xb4, 0x9f,
-	0x4d, 0x31, 0x6b, 0xcd, 0x24, 0x07, 0xdf, 0x64, 0x9b, 0x3f, 0xe6, 0xd2, 0x7e, 0xbf, 0x95, 0x92,
-	0x68, 0xa9, 0x24, 0xed, 0xdb, 0x92, 0xd4, 0xa6, 0x9b, 0xd0, 0x2c, 0x55, 0xfe, 0xce, 0xc1, 0xff,
-	0x33, 0x97, 0x73, 0xf6, 0xb5, 0xe9, 0x8b, 0x90, 0x4b, 0xa5, 0x8d, 0x8e, 0xe3, 0x03, 0xaa, 0x42,
-	0x3e, 0xfa, 0x5b, 0x62, 0x41, 0x8d, 0x50, 0x64, 0xa2, 0xc7, 0xf0, 0xa0, 0x17, 0xf6, 0xbf, 0xa5,
-	0xd2, 0x52, 0x11, 0x81, 0xa1, 0xaf, 0xe5, 0x23, 0xb0, 0xd8, 0xb9, 0xa7, 0x7c, 0xe8, 0x09, 0x2c,
-	0xd1, 0xcb, 0x81, 0xcb, 0xfa, 0x4c, 0x5a, 0x3d, 0x11, 0x72, 0x3b, 0x30, 0x0a, 0x6b, 0xf9, 0x4d,
-	0x0d, 0x2f, 0xa6, 0xee, 0x5d, 0xe5, 0x1d, 0x1d, 0xc7, 0xe2, 0xbd, 0xc6, 0xf1, 0x9f, 0x1c, 0x18,
-	0x77, 0xbd, 0x38, 0xde, 0x76, 0xed, 0xb5, 0xff, 0x42, 0xfb, 0xf6, 0x6d, 0xed, 0xef, 0x31, 0xf7,
-	0xbf, 0x68, 0x50, 0x1e, 0xea, 0x0c, 0x3a, 0x83, 0xa5, 0xaf, 0x99, 0x2b, 0xa9, 0x4f, 0x6d, 0xeb,
-	0x3e, 0xd2, 0x2f, 0xa6, 0x28, 0xed, 0xb8, 0x05, 0xb7, 0x15, 0xcd, 0x8d, 0xdb, 0xf4, 0xfc, 0xf0,
-	0xcb, 0x6f, 0x05, 0x0a, 0xc1, 0x80, 0x70, 0x8b, 0xd9, 0x4a, 0xe9, 0x0a, 0xd6, 0xa3, 0x63, 0xcb,
-	0x46, 0xef, 0x40, 0x51, 0xfa, 0xa4, 0x4f, 0xa3, 0x9b, 0x05, 0x75, 0x53, 0x50, 0xe7, 0x96, 0x6d,
-	0xfe, 0xa6, 0xc1, 0xe2, 0x68, 0xd5, 0xb3, 0x54, 0x9a, 0x76, 0x8f, 0xd2, 0x9e, 0x7e, 0xaf, 0xc1,
-	0x72, 0xf6, 0x37, 0x10, 0x3d, 0x81, 0xc7, 0x8d, 0x83, 0x03, 0xdc, 0x3c, 0x68, 0x74, 0x5b, 0x2f,
-	0x8f, 0xad, 0x6e, 0xf3, 0xa8, 0xf3, 0x12, 0x37, 0xda, 0xad, 0xee, 0xb9, 0x75, 0x7a, 0x7c, 0xd2,
-	0x69, 0xee, 0xb5, 0x3e, 0x6b, 0x35, 0xf7, 0xab, 0x73, 0x68, 0x1d, 0x56, 0xef, 0x0a, 0xdc, 0x6f,
-	0xb6, 0xbb, 0x8d, 0xaa, 0x86, 0x36, 0xc0, 0xbc, 0x2b, 0x64, 0xef, 0xf4, 0xe8, 0xb4, 0xdd, 0xe8,
-	0xb6, 0xce, 0x9a, 0xd5, 0xdc, 0xae, 0x03, 0xeb, 0x4c, 0x4c, 0x18, 0xc0, 0xdd, 0x4a, 0xf2, 0x1f,
-	0x6d, 0x27, 0xba, 0xe8, 0x68, 0x5f, 0xee, 0x30, 0xee, 0xd0, 0x40, 0xd6, 0x19, 0x97, 0xd4, 0xe7,
-	0xc4, 0xad, 0x8f, 0xe4, 0x6f, 0xa9, 0xfc, 0x2d, 0x87, 0xf2, 0xa1, 0xdf, 0x26, 0x7a, 0xba, 0xf2,
-	0x7e, 0xf8, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xc4, 0x59, 0x2f, 0x5a, 0xc4, 0x10, 0x00, 0x00,
+	// 1009 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x57, 0xdd, 0x6e, 0xe3, 0x44,
+	0x14, 0x5e, 0xc7, 0x69, 0xda, 0x9e, 0x74, 0x5b, 0x67, 0x5a, 0xd8, 0xa8, 0xd2, 0x2e, 0x25, 0x42,
+	0x50, 0x10, 0x75, 0x68, 0x29, 0x95, 0x90, 0x40, 0x22, 0xd9, 0x44, 0xac, 0x45, 0xfe, 0x34, 0x71,
+	0x2a, 0x75, 0xa5, 0x5d, 0xe3, 0x24, 0x43, 0x3a, 0xc2, 0x1e, 0x5b, 0xf6, 0x38, 0x6a, 0x1e, 0x80,
+	0x37, 0x40, 0x82, 0x07, 0x82, 0x07, 0xe0, 0x82, 0x7b, 0x1e, 0x80, 0x3b, 0x5e, 0x00, 0x79, 0x6c,
+	0xc7, 0x4e, 0x9a, 0x36, 0x94, 0x2b, 0xd8, 0xbb, 0xf1, 0x37, 0xe7, 0xfb, 0xce, 0x77, 0xce, 0x9c,
+	0xc9, 0xb4, 0xf0, 0xb1, 0xe3, 0x12, 0xc6, 0x89, 0x45, 0x6c, 0xc2, 0xbd, 0x59, 0xd5, 0xf5, 0x1c,
+	0xee, 0x54, 0xc3, 0x35, 0x1d, 0xf9, 0xd5, 0xe9, 0x69, 0xb2, 0x54, 0xc5, 0x06, 0x7a, 0xb6, 0x10,
+	0x1d, 0x81, 0x6a, 0x12, 0x32, 0x3d, 0x3d, 0xfc, 0x68, 0x95, 0xda, 0xc8, 0xb1, 0x6d, 0x87, 0x85,
+	0x62, 0xd1, 0x2a, 0xa2, 0x1d, 0xaa, 0xab, 0x62, 0x3d, 0xe2, 0x3b, 0x81, 0x37, 0x22, 0x61, 0x74,
+	0xb2, 0x8e, 0xe2, 0x2b, 0x7f, 0x48, 0xb0, 0x87, 0x63, 0xa8, 0x1d, 0xa5, 0x44, 0x4d, 0xd8, 0x4a,
+	0xa2, 0xca, 0xd2, 0x91, 0x74, 0x5c, 0x3c, 0xfb, 0x50, 0x5d, 0x65, 0x71, 0x2e, 0x35, 0x3d, 0x55,
+	0x13, 0x0d, 0x3c, 0xa7, 0xa2, 0x1f, 0x24, 0x78, 0x87, 0x32, 0x9f, 0x7b, 0x81, 0x4d, 0x18, 0x37,
+	0x39, 0x75, 0x98, 0x61, 0xd1, 0xa1, 0x67, 0x7a, 0x33, 0x23, 0xae, 0xae, 0x9c, 0x3b, 0x92, 0x8f,
+	0x8b, 0x67, 0x5f, 0xaa, 0xf7, 0x77, 0x40, 0xd5, 0x16, 0x65, 0x5a, 0x91, 0x4a, 0xec, 0x17, 0x3f,
+	0xa5, 0xf7, 0x6d, 0x57, 0x7e, 0x93, 0xe0, 0xe9, 0xbd, 0x02, 0x88, 0xc1, 0x93, 0x3b, 0x8c, 0xc6,
+	0xf5, 0x7f, 0xb6, 0xd2, 0x60, 0xdc, 0xf8, 0x3b, 0xfd, 0xe1, 0xb7, 0x57, 0x1b, 0x43, 0x5f, 0xc1,
+	0xe6, 0x62, 0x03, 0xde, 0x5f, 0xd7, 0x80, 0xc8, 0x29, 0x4e, 0x68, 0x95, 0x3f, 0x65, 0x28, 0x44,
+	0x18, 0x7a, 0x05, 0xa5, 0x08, 0x35, 0xc6, 0xc4, 0x1f, 0x79, 0xd4, 0xe5, 0x8e, 0x17, 0xdb, 0xfe,
+	0xe4, 0x9f, 0xc9, 0x36, 0xe6, 0x3c, 0xac, 0xd8, 0x4b, 0x08, 0x7a, 0x09, 0x25, 0xca, 0xf8, 0xc5,
+	0xb9, 0x31, 0x36, 0xb9, 0x69, 0xb8, 0x0e, 0x65, 0x3c, 0x71, 0xad, 0xae, 0x3f, 0x36, 0x7e, 0x71,
+	0xde, 0x30, 0xb9, 0xd9, 0x0b, 0x69, 0x78, 0x8f, 0x2e, 0x7c, 0xfb, 0xe8, 0x15, 0xa0, 0xb1, 0x13,
+	0x0c, 0x2d, 0xb2, 0x20, 0x2e, 0x0b, 0xf1, 0xea, 0x3a, 0xf1, 0x86, 0x60, 0xa6, 0xea, 0xca, 0x78,
+	0x11, 0xf0, 0xd1, 0x77, 0xf0, 0xd6, 0x35, 0xf5, 0xb9, 0x33, 0xf1, 0x4c, 0x7b, 0x21, 0x43, 0x5e,
+	0x64, 0x38, 0x5b, 0x97, 0xe1, 0x45, 0x42, 0x4e, 0x93, 0xec, 0x5f, 0xdf, 0xc2, 0x7c, 0xf4, 0x2d,
+	0xec, 0xfb, 0x81, 0x6d, 0x87, 0x73, 0x9d, 0xcd, 0xb2, 0x21, 0xb2, 0xac, 0x3d, 0x83, 0x7e, 0x44,
+	0x4d, 0x73, 0x94, 0xfc, 0x25, 0xc4, 0xaf, 0xfc, 0x2e, 0x83, 0xb2, 0x7c, 0x56, 0x08, 0x41, 0x9e,
+	0x99, 0x76, 0x74, 0x45, 0xb7, 0xb1, 0x58, 0xa3, 0x23, 0x28, 0x26, 0x53, 0x40, 0x1d, 0x56, 0xce,
+	0x89, 0xad, 0x2c, 0x14, 0xb2, 0x02, 0x46, 0x79, 0x59, 0x8e, 0x58, 0xe1, 0x1a, 0x69, 0x90, 0xe7,
+	0x33, 0x97, 0x94, 0xf3, 0x47, 0xd2, 0xf1, 0xee, 0x1d, 0xc3, 0x7e, 0xcf, 0xd4, 0xa8, 0xfa, 0xcc,
+	0x25, 0x58, 0x48, 0xa0, 0xd7, 0x50, 0xe4, 0xc4, 0x76, 0x1d, 0xcf, 0xb4, 0x28, 0x9f, 0x95, 0x37,
+	0x84, 0xe2, 0x17, 0x0f, 0x57, 0x4c, 0x35, 0x70, 0x56, 0xb0, 0x32, 0x85, 0x7c, 0x98, 0x0d, 0x29,
+	0xb0, 0xa3, 0x75, 0x2e, 0x6b, 0x2d, 0xad, 0x61, 0xe8, 0x57, 0xbd, 0xa6, 0xf2, 0x08, 0x6d, 0xc3,
+	0x86, 0xd6, 0xd1, 0x2f, 0xce, 0x15, 0x09, 0xed, 0xc3, 0x5e, 0xbb, 0xdb, 0xe9, 0xea, 0xdd, 0x8e,
+	0xf6, 0xdc, 0x88, 0xc0, 0x1c, 0x02, 0x28, 0x34, 0xba, 0x83, 0x7a, 0xab, 0xa9, 0xc8, 0xe8, 0x00,
+	0x94, 0x34, 0x20, 0x46, 0xf3, 0xe8, 0x31, 0x6c, 0xbf, 0xd0, 0xfa, 0x7a, 0xf7, 0x6b, 0x5c, 0x6b,
+	0x2b, 0x1b, 0xa8, 0x08, 0x9b, 0xfd, 0x41, 0xbb, 0x5d, 0xc3, 0x57, 0x4a, 0xa1, 0xa2, 0x43, 0x31,
+	0xe3, 0x09, 0x3d, 0x81, 0xfd, 0x79, 0xfa, 0x66, 0xbb, 0xd7, 0xc5, 0xb5, 0x96, 0xa6, 0x5f, 0x29,
+	0x8f, 0x50, 0x09, 0x1e, 0x6b, 0x9d, 0xbe, 0x5e, 0xeb, 0xe8, 0xb5, 0x4e, 0xb3, 0x3b, 0xe8, 0x2b,
+	0x52, 0x68, 0xac, 0xd1, 0x6c, 0xe9, 0x35, 0x25, 0x87, 0x76, 0x01, 0x9e, 0x0f, 0xda, 0x83, 0x56,
+	0x4d, 0xd7, 0x2e, 0x9b, 0x8a, 0x5c, 0xf9, 0x45, 0x82, 0xdd, 0xc5, 0x4b, 0x82, 0x9a, 0x50, 0xb0,
+	0xcc, 0x21, 0xb1, 0xfc, 0xb2, 0x24, 0xe6, 0xe7, 0x64, 0xcd, 0x4f, 0x4f, 0x9f, 0x7b, 0x94, 0x4d,
+	0xbe, 0x21, 0xb3, 0x4b, 0xd3, 0x0a, 0x08, 0x8e, 0xc9, 0xa8, 0x0a, 0x07, 0x3e, 0x37, 0x3d, 0x6e,
+	0x70, 0x6a, 0x13, 0x23, 0x60, 0xf4, 0xc6, 0x60, 0x26, 0x73, 0xc4, 0x44, 0x14, 0x70, 0x49, 0xec,
+	0xe9, 0xd4, 0x26, 0x03, 0x46, 0x6f, 0x3a, 0x26, 0x73, 0xd0, 0x7b, 0xb0, 0xbb, 0x14, 0x2a, 0x8b,
+	0xd0, 0x1d, 0x9e, 0x8d, 0x3a, 0x80, 0x8d, 0x69, 0x98, 0x47, 0x8c, 0x8a, 0x8c, 0xa3, 0x8f, 0xca,
+	0xaf, 0x12, 0xec, 0x2d, 0x5d, 0xc7, 0xff, 0x53, 0x1d, 0x52, 0x52, 0xc7, 0x5f, 0x79, 0x40, 0xb7,
+	0x2f, 0xfd, 0x7f, 0xbf, 0x94, 0x91, 0x13, 0x30, 0x2e, 0x4a, 0xc9, 0xe3, 0xe8, 0x03, 0x29, 0x20,
+	0xfb, 0x81, 0x2d, 0xee, 0x9f, 0x84, 0xc3, 0x25, 0xea, 0xc3, 0xe6, 0x30, 0x18, 0x7d, 0x4f, 0xb8,
+	0x5f, 0x2e, 0x88, 0x32, 0x3e, 0x7f, 0xf8, 0xef, 0x9f, 0x5a, 0x17, 0x0a, 0x38, 0x51, 0x42, 0x1f,
+	0xc0, 0x1e, 0xb9, 0x71, 0x2d, 0x3a, 0xa2, 0xdc, 0x18, 0x3a, 0x01, 0x1b, 0xfb, 0xe5, 0xcd, 0x23,
+	0xf9, 0x58, 0xc2, 0xbb, 0x09, 0x5c, 0x17, 0xe8, 0xe1, 0xcf, 0x39, 0x28, 0x44, 0xe4, 0xd4, 0xb0,
+	0x94, 0x35, 0xfc, 0x1a, 0xb6, 0xc8, 0x0d, 0xb1, 0x5d, 0xcb, 0xf4, 0x44, 0x47, 0x8a, 0x67, 0xf5,
+	0x7f, 0xed, 0x4f, 0x6d, 0xc6, 0x4a, 0x78, 0xae, 0x79, 0xf8, 0x93, 0x04, 0x5b, 0x09, 0x9c, 0x1e,
+	0xbf, 0x94, 0x39, 0xfe, 0x15, 0xfd, 0xce, 0xad, 0xe8, 0x77, 0x17, 0x8a, 0x26, 0xe7, 0xe6, 0xe8,
+	0x3a, 0x7c, 0xd6, 0x93, 0xd7, 0xea, 0x81, 0x23, 0x91, 0x55, 0xa8, 0xfc, 0x28, 0x83, 0xb2, 0xfc,
+	0x08, 0xbc, 0x21, 0x33, 0xe7, 0x40, 0xc9, 0x25, 0xde, 0x88, 0x30, 0x4e, 0x2d, 0x62, 0x88, 0x2e,
+	0x27, 0xd3, 0x57, 0x7f, 0xe8, 0xbb, 0xa8, 0x8a, 0xca, 0x6a, 0xbc, 0x37, 0x17, 0xc4, 0x4a, 0x2a,
+	0x2e, 0x36, 0xfd, 0x43, 0x0d, 0x4a, 0xb7, 0xc2, 0xd0, 0x33, 0x80, 0x34, 0x30, 0x3e, 0xf2, 0x0c,
+	0x92, 0x4e, 0x43, 0x2e, 0x33, 0x0d, 0xf5, 0x09, 0xbc, 0x4b, 0x9d, 0x35, 0x26, 0xeb, 0x3b, 0xf1,
+	0x9f, 0x90, 0xbd, 0x70, 0xa3, 0x27, 0xbd, 0x3c, 0xa3, 0x6c, 0x42, 0x7c, 0x5e, 0xa5, 0x8c, 0x13,
+	0x8f, 0x99, 0x56, 0x75, 0x81, 0x7f, 0x22, 0xf8, 0x27, 0x13, 0xc2, 0x32, 0xff, 0x0c, 0x0c, 0x0b,
+	0x02, 0xfd, 0xf4, 0xef, 0x00, 0x00, 0x00, 0xff, 0xff, 0xee, 0xc0, 0xd2, 0x42, 0x35, 0x0c, 0x00,
+	0x00,
 }
