@@ -1,4 +1,8 @@
 git clone https://github.com/open-telemetry/opentelemetry-python.git
 ./opentelemetry-python/scripts/build.sh
 DISTDIR=opentelemetry-python/dist
-pip install $DISTDIR/opentelemetry-api-0.12.dev0.tar.gz $DISTDIR/opentelemetry-sdk-0.12.dev0.tar.gz $DISTDIR/opentelemetry-instrumentation-0.12.dev0.tar.gz $DISTDIR/opentelemetry-ext-wsgi-0.12.dev0.tar.gz $DISTDIR/opentelemetry-ext-flask-0.12.dev0.tar.gz $DISTDIR/opentelemetry-ext-requests-0.12.dev0.tar.gz $DISTDIR/opentelemetry-ext-jaeger-0.12.dev0.tar.gz $DISTDIR/opentelemetry-proto-0.12.dev0.tar.gz  $DISTDIR/opentelemetry-ext-otlp-0.12.dev0.tar.gz $DISTDIR/opentelemetry-ext-wsgi-0.12.dev0.tar.gz && cd ..
+
+for i in "opentelemetry-proto-0.14.dev0.tar.gz" "opentelemetry-api-0.14.dev0.tar.gz"  "opentelemetry-sdk-0.14.dev0.tar.gz" "opentelemetry-instrumentation-0.14.dev0.tar.gz" "opentelemetry-instrumentation-wsgi-0.14.dev0.tar.gz" "opentelemetry-instrumentation-flask-0.14.dev0.tar.gz" "opentelemetry-instrumentation-requests-0.14.dev0.tar.gz" "opentelemetry-exporter-otlp-0.14.dev0.tar.gz" ;
+do
+   pip install ${DISTDIR}/${i}
+done
