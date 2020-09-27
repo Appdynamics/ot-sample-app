@@ -2,11 +2,6 @@ receivers:
   otlp:
     protocols:
       grpc:
-  hostmetrics:
-    collection_interval: 30s
-    scrapers:
-      cpu:
-      memory:
 
 exporters:
   otlp:
@@ -20,5 +15,5 @@ service:
       receivers: [otlp]
       exporters: [otlp]
     metrics:
-      receivers: [hostmetrics]
+      receivers: [otlp]
       exporters: [otlp]

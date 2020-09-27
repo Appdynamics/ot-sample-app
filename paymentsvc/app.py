@@ -5,7 +5,7 @@ import argparse
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider, Resource
 from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
-from opentelemetry.ext.otlp.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.trace_exporter import OTLPSpanExporter
 
 app = Flask("payments")
 

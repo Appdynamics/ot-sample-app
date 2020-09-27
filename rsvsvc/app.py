@@ -1,12 +1,10 @@
 from flask import jsonify, Flask, request
-import argparse
 import os
 
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider, Resource
 from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
-from opentelemetry.ext.otlp.trace_exporter import OTLPSpanExporter
-
+from opentelemetry.exporter.otlp.trace_exporter import OTLPSpanExporter
 
 app = Flask("reservations")
 
@@ -17,6 +15,6 @@ def reserve():
 
 
 if __name__ == '__main__':
-    trace.set_tracer_provider(TracerProvider(resource=Resource({"service.name": "payments"})))
+    trace.set_tracer_provider(TracerProvider(resource=Resource({"service.name": "reservations"})))
     trace.get_tracer_provider().add_span_processor(BatchExportSpanProcessor(OTLPSpanExporter(os.getenv("OTC_HOST"))))
     app.run(debug=True, host='0.0.0.0')
