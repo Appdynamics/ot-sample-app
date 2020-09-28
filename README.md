@@ -1,4 +1,4 @@
-# ot-sample-app
+# OpenTelmetry Sample Application
 
 Simple Reservation system with microservices api/booking/reservations/payments
 
