@@ -4,8 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	_ "github.com/go-redis/redis/v8"
 	"github.com/golang/protobuf/jsonpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	mpb "ingest/internal/opentelemetry-proto-gen/collector/metrics/v1"
 	tpb "ingest/internal/opentelemetry-proto-gen/collector/trace/v1"
 	"log"
@@ -16,12 +18,22 @@ type TraceExportService struct {
 	tpb.TraceServiceServer
 }
 
+func (a *TraceExportService) Export(ctx context.Context, request *tpb.ExportTraceServiceRequest) (*tpb.ExportTraceServiceResponse, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Print("No meta data found")
+	} else {
+		token, ok := md["access-key"]
+		if ok {
+			log.Println("Token Info:")
+			log.Println(token)
+		}
+	}
 
-
-func (a *TraceExportService) Export(_ context.Context, request *tpb.ExportTraceServiceRequest) (*tpb.ExportTraceServiceResponse, error) {
 	marshaller := &jsonpb.Marshaler{Indent: "\t"}
 	s, err := marshaller.MarshalToString(request)
 	if err == nil {
+		log.Println()
 		log.Println(s)
 	} else {
 		log.Print(err.Error())
