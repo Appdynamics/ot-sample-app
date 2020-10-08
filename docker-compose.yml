@@ -13,8 +13,8 @@ services:
     environment:
       - OTEL_PYTHON_METER_PROVIDER=sdk_meter_provider
       - OTEL_PYTHON_TRACER_PROVIDER=sdk_tracer_provider
-    #logging:
-    #  driver: none
+    logging:
+      driver: none
 
   bookings:
     image: ${DTR_SAMPLE_APP_REPO}/py-bookings
@@ -51,7 +51,8 @@ services:
 
   # Collector
   otel-collector:
-    image: otel/opentelemetry-collector:0.9.0
+    #image: otel/opentelemetry-collector:0.9.0
+    image: ${DTR_SAMPLE_APP_REPO}/otelcol:latest
     container_name: otel-collector
     command: ["--config=/etc/otel-config.yml", "${OTELCOL_ARGS}"]
     volumes:
@@ -62,12 +63,21 @@ services:
     env_file:
       - setup.env
 
-  ingest:
+  grpc-ingest:
     image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest
     build:
       context: ingest
-    container_name: ingest
-    entrypoint: ["./server"]
+    container_name: grpc-ingest
+    entrypoint: ["./serve_grpc"]
+    env_file:
+      - setup.env
+
+  http-ingest:
+    image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest
+    build:
+      context: ingest
+    container_name: http-ingest
+    entrypoint: ["./serve_http"]
     env_file:
       - setup.env
 

@@ -5,9 +5,11 @@ receivers:
 
 exporters:
   otlp:
-    endpoint: ingest:5000
-    insecure: true
-
+    http:
+      endpoint: http://http-ingest:5000
+      format: json 
+      insecure: true
+      headers: {"appd-x-key": "abcd"}
 
 service:
   pipelines:
