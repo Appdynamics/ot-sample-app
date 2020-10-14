@@ -5,17 +5,17 @@ receivers:
 
 exporters:
   otlp:
-    http:
-      endpoint: http://http-ingest:5000
-      format: json 
-      insecure: true
-      headers: {"appd-x-key": "abcd"}
+    endpoint: grpc-ingest:5000
+    insecure: true
+    headers: {"x-appd-key": "efgh"}
+
+  otlphttp:
+    endpoint: http://http-ingest:5000
+    insecure: true
+    headers: {"x-appd-key": "abcd"}
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [otlp]
-    metrics:
-      receivers: [otlp]
-      exporters: [otlp]
+      exporters: [otlp, otlphttp]
