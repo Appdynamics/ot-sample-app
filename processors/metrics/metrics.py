@@ -2,13 +2,14 @@ import redis
 import os
 import pprint
 from opentelemetry.proto.collector.metrics.v1 import metrics_service_pb2 as mspb
+from opentelemetry.proto.metrics.v1 import metrics_pb2 as mpb
 
 
-def process_metrics(message: mspb.ExportMetricsServiceRequest) -> None:
+def process_metrics(im: mpb.InstrumentationLibraryMetrics) -> None:
     """
 
     """
-    pass
+    pprint.pprint(im.metrics)
 
 
 if __name__ == '__main__':
@@ -19,6 +20,7 @@ if __name__ == '__main__':
         try:
             message = mspb.ExportMetricsServiceRequest()
             message.ParseFromString(raw_message['data'])
-            pprint.pprint(message)
+            for rm in message.resource_metrics:
+                pprint.pprint(rm.resource.ListFields())
         except (AttributeError,TypeError):
             print('failed')
