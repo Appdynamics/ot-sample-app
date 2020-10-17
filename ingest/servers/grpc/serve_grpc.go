@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc"
 	mpb "ingest/internal/opentelemetry-proto-gen/collector/metrics/v1"
 	tpb "ingest/internal/opentelemetry-proto-gen/collector/trace/v1"
@@ -51,20 +52,16 @@ type MetricExportService struct {
 }
 
 func (b *MetricExportService) Export(ctx context.Context, request *mpb.ExportMetricsServiceRequest) (*mpb.ExportMetricsServiceResponse, error) {
-	marshaller := &jsonpb.Marshaler{Indent: "\t"}
-	s, err := marshaller.MarshalToString(request)
+	br, err := proto.Marshal(request)
 	if err != nil {
 		log.Print(err.Error())
 	}
 
-	err = rdb.Publish(ctx, os.Getenv("REDIS_METRICS_CHANNEL"), s).Err()
+	err = rdb.Publish(ctx, os.Getenv("REDIS_METRICS_CHANNEL"), br).Err()
 	if err != nil {
 		log.Print(err.Error())
 	}
-	log.Print("success!")
-
-
-
+	
 	return &mpb.ExportMetricsServiceResponse{}, err
 }
 
