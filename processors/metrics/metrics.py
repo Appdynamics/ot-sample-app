@@ -1,23 +1,19 @@
 import redis
 import os
-import logging
 import json
 import pprint
-
-r = redis.Redis.from_url("redis://"+os.getenv("REDIS_ENDPOINT"))
-
-
-def subscribe(channel: str) -> None:
-    """Process messages from the pubsub stream."""
-    ps = r.pubsub()
-    ps.subscribe(channel)
-    for raw_message in ps.listen():
-        try:
-            data = json.loads(raw_message['data'])
-            pprint.pprint(data)
-        except (json.decoder.JSONDecodeError, TypeError):
-            print('failed')
+from google.protobuf.json_format import Parse
+from opentelemetry.proto.collector.metrics.v1 import metrics_service_pb2 as mspb
 
 if __name__ == '__main__':
-    print("Starting Metrics processor {}".format(os.getenv("REDIS_METRICS_CHANNEL")))
-    subscribe(os.getenv("REDIS_METRICS_CHANNEL"))
+    r = redis.Redis.from_url("redis://" + os.getenv("REDIS_ENDPOINT"))
+    ps = r.pubsub()
+    ps.subscribe(os.getenv("REDIS_METRICS_CHANNEL"))
+    for raw_message in ps.listen():
+        try:
+            print('here')
+            message = mspb.ExportMetricsServiceRequest()
+            Parse(raw_message['data'], message, True)
+            pprint.pprint(message)
+        except (json.decoder.JSONDecodeError, TypeError, AttributeError):
+            print('failed')
