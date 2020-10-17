@@ -1,0 +1,34 @@
+version: '3'
+services:
+  grpc-ingest:
+    image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest
+    container_name: grpc-ingest
+    entrypoint: ["./serve_grpc"]
+    env_file:
+      - setup.env
+    ports:
+      - 5000:5000
+
+  http-ingest:
+    image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest
+    container_name: http-ingest
+    entrypoint: ["./serve_http"]
+    env_file:
+      - setup.env
+
+  redis:
+    image: redis:buster
+    container_name: redis
+    ports:
+      - 6379:6379
+  
+  metrics_processor:
+    image: ${DTR_SAMPLE_APP_REPO}/metrics_processor
+    # build:
+    #   context: processors/metrics
+    container_name: metrics_processor
+    entrypoint: ["python", "metrics.py"]
+    env_file:
+      - setup.env
+    depends_on:
+      - redis

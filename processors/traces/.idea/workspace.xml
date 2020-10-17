@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="19ee6f7d-1073-448c-af1a-e393763dc3f7" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/../../docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../../docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../ingest/dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/../../ingest/dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../ingest/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/../../ingest/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../ingest/servers/grpc/serve_grpc.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../ingest/servers/grpc/serve_grpc.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../setup.env" beforeDir="false" afterPath="$PROJECT_DIR$/../../setup.env" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="GOROOT" path="/usr/local/go" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="GoLibraries">
+    <option name="indexEntireGoPath" value="false" />
+  </component>
+  <component name="KubernetesApiPersistence">
+    <option name="context" value="docker-desktop" />
+    <option name="namespace" value="default" />
+  </component>
+  <component name="ProjectId" id="1iygTBBJaofxpfnPOPBJdUJ9WeC" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="go.import.settings.migrated" value="true" />
+    <property name="go.sdk.automatically.set" value="true" />
+    <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VgoProject">
+    <integration-enabled>true</integration-enabled>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="640" y="377" key="#Go_Modules" timestamp="1602885262455">
+      <screen x="0" y="23" width="1680" height="1027" />
+    </state>
+    <state x="640" y="377" key="#Go_Modules/0.23.1680.1027@0.23.1680.1027" timestamp="1602885262455" />
+  </component>
+</project>
