@@ -51,16 +51,19 @@ type MetricExportService struct {
 }
 
 func (b *MetricExportService) Export(ctx context.Context, request *mpb.ExportMetricsServiceRequest) (*mpb.ExportMetricsServiceResponse, error) {
-	marshaller := &jsonpb.Marshaler{}
+	marshaller := &jsonpb.Marshaler{Indent: "\t"}
 	s, err := marshaller.MarshalToString(request)
 	if err != nil {
 		log.Print(err.Error())
 	}
-	
+
 	err = rdb.Publish(ctx, os.Getenv("REDIS_METRICS_CHANNEL"), s).Err()
 	if err != nil {
 		log.Print(err.Error())
 	}
+	log.Print("success!")
+
+
 
 	return &mpb.ExportMetricsServiceResponse{}, err
 }
