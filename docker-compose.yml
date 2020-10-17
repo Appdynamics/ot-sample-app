@@ -2,8 +2,8 @@ version: '3'
 services:
   api:
     image: ${DTR_SAMPLE_APP_REPO}/py-apigateway
-#    build:
-#      context: bookapi
+    # build:
+    #   context: bookapi
     ports:
       - "5001:5000"
     container_name: py-api-gateway
@@ -18,8 +18,8 @@ services:
 
   bookings:
     image: ${DTR_SAMPLE_APP_REPO}/py-bookings
-#    build:
-#      context: booksvc
+    # build:
+    #   context: booksvc
     container_name: py-bookings
     entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
@@ -29,8 +29,8 @@ services:
 
   payments:
     image: ${DTR_SAMPLE_APP_REPO}/py-payments
-#    build:
-#      context: paymentsvc
+    # build:
+    #   context: paymentsvc
     container_name: py-payments
     entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
@@ -40,8 +40,8 @@ services:
 
   reservations:
     image: ${DTR_SAMPLE_APP_REPO}/py-reservations
-#    build:
-#      context: rsvsvc
+    # build:
+    #   context: rsvsvc
     container_name: py-reservations
     entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
@@ -65,31 +65,41 @@ services:
 
   grpc-ingest:
     image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest
-#    build:
-#      context: ingest
+    build:
+      context: ingest
     container_name: grpc-ingest
     entrypoint: ["./serve_grpc"]
     env_file:
       - setup.env
+    ports:
+      - 5000:5001
 
   http-ingest:
     image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest
-#    build:
-#      context: ingest
+    build:
+      context: ingest
     container_name: http-ingest
     entrypoint: ["./serve_http"]
     env_file:
       - setup.env
 
-  # jaeger:
-  #     container_name: jaeger
-  #     image: jaegertracing/all-in-one
-  #     ports:
-  #         - 5775:5775/udp
-  #         - 6831:6831/udp
-  #         - 6832:6832/udp
-  #         - 5778:5778
-  #         - 16686:16686
-  #         - 14268:14268
-  #         - 9411:9411
-
+  redis:
+    image: redis:buster
+  
+  trace_processor:
+    image: ${DTR_SAMPLE_APP_REPO}/trace_processor
+    build:
+      context: processors/traces
+    container_name: traces_processor
+    entrypoint: ["./trace_processor"]
+    env_file:
+      - setup.env
+  
+  metrics_processor:
+    image: ${DTR_SAMPLE_APP_REPO}/metrics_processor
+    build:
+      context: processors/metrics
+    container_name: metrics_processor
+    entrypoint: ["python", "metrics.py"]
+    env_file:
+      - setup.env
