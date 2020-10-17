@@ -34,4 +34,4 @@ service:
   pipelines:
     metrics:
       receivers: [hostmetrics,redis]
-      exporters: [prometheus,logging,otlp]
+      exporters: [logging,otlp]

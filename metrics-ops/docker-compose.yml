@@ -24,8 +24,8 @@ services:
   
   metrics_processor:
     image: ${DTR_SAMPLE_APP_REPO}/metrics_processor
-    # build:
-    #   context: processors/metrics
+    build:
+      context: ../processors/metrics
     container_name: metrics_processor
     entrypoint: ["python", "metrics.py"]
     env_file:
