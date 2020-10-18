@@ -26,4 +26,5 @@ services:
     env_file:
       - setup.env
     depends_on:
+      - grpc-ingest
       - redis
