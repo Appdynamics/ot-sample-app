@@ -2,8 +2,8 @@ version: '3'
 services:
   api:
     image: ${DTR_SAMPLE_APP_REPO}/py-apigateway
-    # build:
-    #   context: bookapi
+    build:
+      context: bookapi
     ports:
       - "5001:5000"
     container_name: py-api-gateway
@@ -18,8 +18,8 @@ services:
 
   bookings:
     image: ${DTR_SAMPLE_APP_REPO}/py-bookings
-    # build:
-    #   context: booksvc
+    build:
+      context: booksvc
     container_name: py-bookings
     entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
@@ -29,8 +29,8 @@ services:
 
   payments:
     image: ${DTR_SAMPLE_APP_REPO}/py-payments
-    # build:
-    #   context: paymentsvc
+    build:
+      context: paymentsvc
     container_name: py-payments
     entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
@@ -40,8 +40,8 @@ services:
 
   reservations:
     image: ${DTR_SAMPLE_APP_REPO}/py-reservations
-    # build:
-    #   context: rsvsvc
+    build:
+      context: rsvsvc
     container_name: py-reservations
     entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:

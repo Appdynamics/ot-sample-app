@@ -22,6 +22,7 @@ opentelemetry-instrumentation
 opentelemetry-instrumentation-wsgi
 opentelemetry-instrumentation-flask
 opentelemetry-instrumentation-requests
+opentelemetry-instrumentation-aiohttp
 opentelemetry-exporter-otlp
 opentelemetry-proto
-
+aiohttp
