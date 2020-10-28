@@ -10,14 +10,30 @@ import (
 	"google.golang.org/grpc"
 	mpb "ingest/internal/opentelemetry-proto-gen/collector/metrics/v1"
 	tpb "ingest/internal/opentelemetry-proto-gen/collector/trace/v1"
-	"os"
-
+	cpb "ingest/internal/opentelemetry-proto-gen/common/v1"
+	mv "ingest/internal/opentelemetry-proto-gen/metrics/v1"
 	"log"
 	"net"
+	"os"
+	"text/template"
 )
 
 var (
 	rdb *redis.Client
+)
+
+const (
+	GaugeInt64                  = "GAUGE_INT64"
+	GaugeDouble                 = "GAUGE_DOUBLE"
+	GaugeDistribution           = "GAUGE_DISTRIBUTION"
+	GaugeCumulativeInt          = "CUMULATIVE_INT64"
+	GaugeCumulativeDouble       = "CUMULATIVE_DOUBLE"
+	GaugeCumulativeDistribution = "CUMULATIVE_DISTRIBUTION"
+)
+
+var (
+	RdlTemplateStr = `<Metric(name={{.Descriptor.Name}} type={{.Descriptor.Type}} unit={{.Descriptor.Unit}} description={{.Descriptor.Description}}) Value(timestamp={{.TimeStamp}} value={{.Value}}) Labels({{ range $key, $val := .Labels}}{{$key}}={{$val}} {{end}}) Source(source={{.Source.Name}}, version={{.Source.Version}})>`
+	RdlTemplate = template.Must(template.New("Template").Parse(RdlTemplateStr))
 )
 
 func init() {
@@ -51,18 +67,128 @@ type MetricExportService struct {
 	mpb.MetricsServiceServer
 }
 
-func (b *MetricExportService) Export(ctx context.Context, request *mpb.ExportMetricsServiceRequest) (*mpb.ExportMetricsServiceResponse, error) {
-	br, err := proto.Marshal(request)
-	if err != nil {
-		log.Print(err.Error())
+func stringify(val *cpb.AnyValue) string {
+	switch val.Value.(type) {
+	case *cpb.AnyValue_BoolValue:
+		return fmt.Sprintf("%", val.GetBoolValue())
+	case *cpb.AnyValue_DoubleValue:
+		return fmt.Sprintf("%f", val.GetDoubleValue())
+	case *cpb.AnyValue_IntValue:
+		return fmt.Sprintf("%d", val.GetIntValue())
+	case *cpb.AnyValue_StringValue:
+		return val.GetStringValue()
+	default:
+		return ""
 	}
+}
 
-	err = rdb.Publish(ctx, os.Getenv("REDIS_METRICS_CHANNEL"), br).Err()
-	if err != nil {
-		log.Print(err.Error())
+type RDL []*RDLPoint
+
+type SourceInfo struct {
+	Name    string
+	Version string
+}
+
+type DescriptorInfo struct {
+	Name        string
+	Description string
+	Unit        string
+	Type        string
+}
+
+type RDLPoint struct {
+	Source     *SourceInfo
+	Labels     map[string]string
+	Descriptor *DescriptorInfo
+	TimeStamp  uint64
+	Value      float64
+}
+
+func (b *MetricExportService) Export(ctx context.Context, request *mpb.ExportMetricsServiceRequest) (*mpb.ExportMetricsServiceResponse, error) {
+	out := make(RDL, 0)
+	labels := map[string]string{}
+	source := &SourceInfo{
+		"OpenTelemetry Collector",
+		"v0.12",
 	}
-	
-	return &mpb.ExportMetricsServiceResponse{}, err
+	for _, rm := range request.GetResourceMetrics() {
+		_ = proto.MarshalText(os.Stdout, rm)
+		fmt.Println("\n")
+		resource := rm.GetResource()
+		for _, kv := range resource.GetAttributes() {
+			labels[kv.GetKey()] = stringify(kv.GetValue())
+		}
+		for _, im := range rm.GetInstrumentationLibraryMetrics() {
+			for _, mx := range im.GetMetrics() {
+				md := &DescriptorInfo{mx.GetName(), mx.GetDescription(), mx.GetUnit(), ""}
+				rdp := &RDLPoint{}
+				switch mx.GetData().(type) {
+				case *mv.Metric_DoubleGauge:
+					dps := mx.GetDoubleGauge()
+					md.Type = GaugeDouble
+					for _, dp := range dps.GetDataPoints() {
+						for _, kv := range dp.Labels {
+							labels[kv.GetKey()] = kv.GetValue()
+						}
+						rdp.Labels = labels
+						rdp.Value = dp.GetValue()
+						rdp.TimeStamp = dp.GetTimeUnixNano()
+						rdp.Source = source
+						rdp.Descriptor = md
+					}
+				case *mv.Metric_IntGauge:
+					dps := mx.GetIntGauge()
+					md.Type = GaugeInt64
+					for _, dp := range dps.GetDataPoints() {
+						for _, kv := range dp.Labels {
+							labels[kv.GetKey()] = kv.GetValue()
+						}
+						rdp.Labels = labels
+						rdp.Value = float64(dp.GetValue())
+						rdp.TimeStamp = dp.GetTimeUnixNano()
+						rdp.Source = source
+						rdp.Descriptor = md
+					}
+				case *mv.Metric_DoubleSum:
+					dps := mx.GetDoubleSum()
+					md.Type = GaugeCumulativeDouble
+					for _, dp := range dps.GetDataPoints() {
+						for _, kv := range dp.Labels {
+							labels[kv.GetKey()] = kv.GetValue()
+						}
+						rdp.Labels = labels
+						rdp.Value = dp.GetValue()
+						rdp.TimeStamp = dp.GetTimeUnixNano()
+						rdp.Source = source
+						rdp.Descriptor = md
+					}
+				case *mv.Metric_IntSum:
+					dps := mx.GetIntSum()
+					md.Type = GaugeCumulativeDouble
+					for _, dp := range dps.GetDataPoints() {
+						for _, kv := range dp.Labels {
+							labels[kv.GetKey()] = kv.GetValue()
+						}
+						rdp.Labels = labels
+						rdp.Value = float64(dp.GetValue())
+						rdp.TimeStamp = dp.GetTimeUnixNano()
+						rdp.Source = source
+						rdp.Descriptor = md
+					}
+				}
+
+
+
+				err := RdlTemplate.Execute(os.Stdout, rdp)
+				if err != nil {
+					fmt.Println(err)
+				}
+				fmt.Println("\n")
+				out = append(out, rdp)
+			}
+		}
+	}
+	return &mpb.ExportMetricsServiceResponse{}, nil
 }
 
 func main() {
