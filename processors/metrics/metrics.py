@@ -36,7 +36,7 @@ def process_metrics(rmetrics: mpb.ResourceMetrics) -> None:
         for key, group in itertools.groupby(im.metrics, key=lambda x: x.name):
             key = key.replace(".", "/")
             gr_types = [g for g in group][0]
-            pprint.pprint(f"{key} {gr_types}")
+            pprint.pprint(f"{key}")
 
     pprint.pprint("=" * 90)
 
