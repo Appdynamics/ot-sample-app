@@ -10,9 +10,11 @@ import (
 	tpb "ingest/internal/opentelemetry-proto-gen/collector/trace/v1"
 	mv "ingest/internal/opentelemetry-proto-gen/metrics/v1"
 	"ingest/servers/grpc/transform"
+	"io"
 	"log"
 	"net"
 	"os"
+	"sync"
 	"text/template"
 )
 
@@ -87,14 +89,26 @@ func main() {
 
 	messages := make(chan *transform.RDLPoint, 50)
 
+
 	go func() {
-		for msg := range messages {
-			err := RdlTemplate.Execute(os.Stdout, msg)
-			fmt.Print("\n\n")
-			if err != nil {
-				fmt.Println(err)
+		log.Printf("Starting main routine\n")
+		var wg sync.WaitGroup
+		process := func (messages chan *transform.RDLPoint, w io.Writer, wg *sync.WaitGroup) {
+			for msg := range messages {
+				err := RdlTemplate.Execute(os.Stdout, msg)
+				fmt.Print("\n\n")
+				if err != nil {
+					fmt.Println(err)
+				}
 			}
+			wg.Done()
 		}
+		for i := 0; i < 1; i++ {
+			log.Printf("Starting routine %d\n", i)
+			wg.Add(1)
+			go process(messages, os.Stdout, &wg)
+		}
+		wg.Wait()
 	}()
 
 	grpcServer := grpc.NewServer(opts...)
