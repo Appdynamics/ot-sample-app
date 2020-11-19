@@ -1,24 +1,41 @@
+processors:
+  resource/appdynamics:
+    attributes:
+    - key: service.name
+      value: "shopping-cart"
+      action: upsert
+    - key: service.namespace
+      value: "shopping"
+      action: upsert
+    - key: appdynamics.controller.host
+      action: upsert
+      value: "se-demo.appdynamics.com"
+    - key: appdynamics.controller.port
+      action: upsert
+      value: 443
+      
+  batch/appdynamics:
+    send_batch_size: 10000
+    timeout: 10s
+
+
 receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: localhost:55680
+      http:
+        endpoint: localhost:55681
 
 exporters:
-  otlp:
-    endpoint: grpc-ingest:5000
-    insecure: true
-    headers: {"x-appd-key": "efgh"}
+  otlphttp/appdynamics:
+    endpoint: <appd endpoint>
+    headers: {"x-appd-key": "acce$$key"}
 
-  otlphttp:
-    endpoint: http://http-ingest:5000
-    insecure: true
-    headers: {"x-appd-key": "abcd"}
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [otlp, otlphttp]
-    metrics:
-      receiver: [redis]
-      exporters: [otlphttp]
+      processor: [resource/appdynamics, batch/appdynamics]
+      exporters: [otlphttp/appdynamics]
