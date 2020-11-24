@@ -12,21 +12,15 @@ processors:
       value: "host_machine_123"
 
 receivers:
-  # otlp:
-  #   protocols:
-  #     grpc:
   redis:
     endpoint: 0.0.0.0:6379
     service_name: "my-test-redis"
     collection_interval: 30s
   
   hostmetrics:
-    collection_interval: 30s
     scrapers:
       cpu:
       memory:
-      disk:
-      network:
 
 exporters:
   otlp:
@@ -46,6 +40,6 @@ exporters:
 service:
   pipelines:
     metrics:
-      receivers: [hostmetrics,redis]
+      receivers: [hostmetrics]
       processors: [resource]
       exporters: [logging,otlp]

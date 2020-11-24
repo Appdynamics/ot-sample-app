@@ -45,7 +45,19 @@ var (
 	RdlTemplate    = template.Must(template.New("Template").Parse(RdlTemplateStr))
 )
 
-func (b *MetricExportService) Export(_ context.Context, request *mpb.ExportMetricsServiceRequest) (*mpb.ExportMetricsServiceResponse, error) {
+func (b *MetricExportService) Export(ctx context.Context, request *mpb.ExportMetricsServiceRequest) (*mpb.ExportMetricsServiceResponse, error) {
+
+	marshaller := jsonpb.Marshaler{Indent: " "}
+	file, err := os.OpenFile("json_ex.txt", os.O_WRONLY|os.O_CREATE, 0755)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = marshaller.Marshal(file, request)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	for _, rm := range request.GetResourceMetrics() {
 		resource := rm.GetResource().GetAttributes()
 		for _, im := range rm.GetInstrumentationLibraryMetrics() {
