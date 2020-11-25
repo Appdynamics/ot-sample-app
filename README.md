@@ -1,6 +1,9 @@
 # OpenTelemetry Sample Application
 
+## Application Topology
 ![Application](docs/sample-traces.png)
+
+## Metrics
 ![K8 Metrics](docs/sample-metrics.png)
 
 
