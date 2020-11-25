@@ -32,12 +32,15 @@ data:
         endpoint: traces-svc:5000
         insecure: true
         headers: {"singulairy-header": "abds", "x-appd-account": "appdaccount"}
+      zipkin:
+        endpoint: "http://zipkin-svc:9411/api/v2/spans"
+        format: proto
     service:
       extensions: [health_check, zpages]
       pipelines:
         traces:
           receivers: [otlp]
-          exporters: [otlp/serverless]
+          exporters: [otlp/serverless, zipkin]
         metrics:
           receivers: [otlp]
           processors: [memory_limiter, batch]

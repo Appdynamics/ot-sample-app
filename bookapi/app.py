@@ -29,7 +29,7 @@ if __name__ == '__main__':
     endpoint = "{}:{}".format(os.getenv("OTC_HOST"), os.getenv("OTC_PORT", "55680"))
     print('OTC Collector endpoint set to {}'.format(endpoint))
 
-    trace.set_tracer_provider(TracerProvider(resource=Resource({"service.name": "booking"})))
+    trace.set_tracer_provider(TracerProvider(resource=Resource({"service.name": "api"})))
     trace.get_tracer_provider().add_span_processor(BatchExportSpanProcessor(OTLPSpanExporter(endpoint=endpoint,
                                                                                              insecure=True)))
 
