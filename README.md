@@ -19,13 +19,10 @@ A Simple Reservation system with microservices api/booking/reservations/payments
   - Prometheus Service (exposed on Port 30002) 
   - Zipkin (exposed on Port 30003)  
 
-
-## Usage
-
-### Building images
+## Building images
 - $ `docker-compose build`
 
-### Running the Application 
+## Deploying the Application 
 
 Once you have Kubernetes cluster (docker-desktop, minikube, EKS, GKE), apply the deployment files.
 NodePort services for application gateway, prometheus, zipkin are exposed on NodePort services on 
