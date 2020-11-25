@@ -2,52 +2,43 @@ version: '3'
 services:
   api:
     image: ${DTR_SAMPLE_APP_REPO}/py-apigateway
-    # build:
-    #   context: bookapi
+    build:
+      context: bookapi
     ports:
       - "5001:5000"
     container_name: py-api-gateway
     entrypoint: ["opentelemetry-instrument", "python", "app.py"]
     env_file:
       - setup.env
-    environment:
-      - OTEL_PYTHON_METER_PROVIDER=sdk_meter_provider
-      - OTEL_PYTHON_TRACER_PROVIDER=sdk_tracer_provider
-    logging:
-      driver: none
 
   bookings:
     image: ${DTR_SAMPLE_APP_REPO}/py-bookings
-    # build:
-    #   context: booksvc
+    build:
+      context: booksvc
     container_name: py-bookings
     entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
       - setup.env
-    logging:
-      driver: none
+
 
   payments:
     image: ${DTR_SAMPLE_APP_REPO}/py-payments
-    # build:
-    #   context: paymentsvc
+    build:
+      context: paymentsvc
     container_name: py-payments
     entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
       - setup.env
-    logging:
-      driver: none
 
   reservations:
     image: ${DTR_SAMPLE_APP_REPO}/py-reservations
-    # build:
-    #   context: rsvsvc
+    build:
+      context: rsvsvc
     container_name: py-reservations
     entrypoint: ["opentelemetry-instrument",  "python", "app.py"]
     env_file:
       - setup.env
-    logging:
-      driver: none
+
 
   # Collector
   otel-collector:
@@ -71,35 +62,7 @@ services:
     entrypoint: ["./serve_grpc"]
     env_file:
       - setup.env
-    ports:
-      - 5000:5001
 
-  http-ingest:
-    image: ${DTR_SAMPLE_APP_REPO}/mock-traces-ingest
-    build:
-      context: ingest
-    container_name: http-ingest
-    entrypoint: ["./serve_http"]
-    env_file:
-      - setup.env
 
-  redis:
-    image: redis:buster
+
   
-  trace_processor:
-    image: ${DTR_SAMPLE_APP_REPO}/trace_processor
-    build:
-      context: processors/traces
-    container_name: traces_processor
-    entrypoint: ["./trace_processor"]
-    env_file:
-      - setup.env
-  
-  metrics_processor:
-    image: ${DTR_SAMPLE_APP_REPO}/metrics_processor
-    build:
-      context: processors/metrics
-    container_name: metrics_processor
-    entrypoint: ["python", "metrics.py"]
-    env_file:
-      - setup.env

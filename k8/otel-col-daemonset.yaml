@@ -9,9 +9,9 @@ metadata:
 data:
   otel-agent-config: |
     receivers:
-      hostmetrics:
-        scrapers:
-          cpu:
+      otlp:
+        protocols:
+          grpc:
       kubeletstats:
         collection_interval: 20s
         auth_type: "serviceAccount"
@@ -20,14 +20,15 @@ data:
     exporters:
       logging:
         loglevel: debug
+      otlp/serverless:
+        endpoint: traces-svc:5000
+        insecure: true
+        headers: {"singulairy-header": "abds", "x-appd-account": "appdaccount"}
     processors:
       batch:
       memory_limiter:
-        # Same as --mem-ballast-size-mib CLI argument
         ballast_size_mib: 165
-        # 80% of maximum memory up to 2G
         limit_mib: 400
-        # 25% of limit up to 2G
         spike_limit_mib: 100
         check_interval: 5s
     extensions:
@@ -36,10 +37,13 @@ data:
     service:
       extensions: [health_check, zpages]
       pipelines:
-        metrics:
-          receivers: [kubeletstats, hostmetrics]
-          processors: [memory_limiter, batch]
-          exporters: [logging]
+        traces:
+          receivers: [otlp]
+          exporters: [otlp/serverless]
+        # metrics:
+        #  receivers: [kubeletstats]
+        #  processors: [memory_limiter, batch]
+        #  exporters: [logging]
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -63,7 +67,6 @@ spec:
       - command:
           - "/otelcontribcol"
           - "--config=/conf/otel-agent-config.yaml"
-          # Memory Ballast size should be max 1/3 to 1/2 of memory.
           - "--mem-ballast-size-mib=165"
         image: otel/opentelemetry-collector-contrib:0.15.0
         name: otel-agent
@@ -82,6 +85,7 @@ spec:
         ports:
         - containerPort: 55679 # ZPages endpoint.
         - containerPort: 55680 # Default OpenTelemetry receiver port.
+          hostPort: 55680
         - containerPort: 8888  # Metrics.
         volumeMounts:
         - name: otel-agent-config-vol

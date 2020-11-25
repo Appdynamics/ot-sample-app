@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments-deploy
+  labels:
+    app: payments
+spec:
+  selector:
+    matchLabels:
+      app: payments
+  template:
+    spec:
+      containers:
+        - name: payments-container
+          image: dtr.corp.appdynamics.com/pavan.krishna/py-payments:latest
+          ports:
+            - containerPort: 5000
+          command: ["opentelemetry-instrument", "python", "app.py"]
+          env:
+            - name: OTC_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: OTC_PORT
+              value: "55680"
+            - name: PAY_SVC
+              value: http://payments-svc:5000/process
+            - name: RSV_SVC
+              value: http://reservations-svc:5000/reserve
+            - name: BOOK_SVC
+              value: http://bookings-svc:5000/booking
+    metadata:
+      labels:
+        app: payments
+  replicas: 1
+  minReadySeconds: 10
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments-svc
+  labels:
+    app: payments
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5000
+      protocol: TCP
+  selector:
+    app: payments
+
+
+

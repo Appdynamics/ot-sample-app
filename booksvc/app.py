@@ -1,38 +1,39 @@
+from flask import jsonify, Flask, request
+import requests
 import os
-import asyncio
-import aiohttp
-
-from aiohttp import web
-
 
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider, Resource
 from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
 from opentelemetry.exporter.otlp.trace_exporter import OTLPSpanExporter
 
-
-async def fetch(session: aiohttp.ClientSession, url, payload):
-    async with session.post(url, data=payload) as resp:
-        return await resp.json()
+app = Flask("bookings")
 
 
-async def make_booking(request):
-    async with aiohttp.ClientSession() as session:
-        results = await asyncio.gather(fetch(session, os.getenv("PAY_SVC"), payload={"card": request.json["card"]}),
-                                       fetch(session, os.getenv("RSV_SVC"), payload={"date": request.json["date"],
-                                                                                     "name": request.json["name"]}
-                                          ))
+@app.route("/booking", methods=["POST"])
+def make_booking():
+    pay_status = requests.post(os.getenv("PAY_SVC"), json={"card": request.json["card"]})
+    if not pay_status.ok:
+        return 'bad request!', 400
 
-    print(results)
-    return web.Response(body="success!", status=200)
+    rsv_status = requests.post(os.getenv("RSV_SVC"), json={"date": request.json["date"],
+                                                           "name": request.json["name"]})
+    if not rsv_status.ok:
+        return 'bad request for rsv', 400
+
+    return jsonify({"payment": pay_status.json(), "reservation": rsv_status.json()})
 
 
-app = web.Application()
-app.add_routes([
-    web.get('/booking', make_booking)
-                ])
+@app.route("/debug", methods=["POST"])
+def make_debug():
+    return jsonify(request.json)
+
 
 if __name__ == '__main__':
+    endpoint = "{}:{}".format(os.getenv("OTC_HOST"), os.getenv("OTC_PORT", "55680"))
+    print('OTC Collector endpoint set to {}'.format(endpoint))
+
     trace.set_tracer_provider(TracerProvider(resource=Resource({"service.name": "booking"})))
-    trace.get_tracer_provider().add_span_processor(BatchExportSpanProcessor(OTLPSpanExporter(os.getenv("OTC_HOST"))))
-    web.run_app(app, port=5000)
+    trace.get_tracer_provider().add_span_processor(BatchExportSpanProcessor(OTLPSpanExporter(endpoint=endpoint,
+                                                                                             insecure=True)))
+    app.run(debug=True, host='0.0.0.0')

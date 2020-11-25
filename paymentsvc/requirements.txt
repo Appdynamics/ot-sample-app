@@ -24,4 +24,3 @@ opentelemetry-instrumentation-flask
 opentelemetry-instrumentation-requests
 opentelemetry-exporter-otlp
 opentelemetry-proto
-

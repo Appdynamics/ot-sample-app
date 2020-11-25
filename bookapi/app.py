@@ -4,14 +4,9 @@ import datetime
 import os
 
 from opentelemetry import trace
-from opentelemetry.sdk.trace import Resource
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
+from opentelemetry.sdk.trace import Resource, TracerProvider
 from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
 from opentelemetry.exporter.otlp.trace_exporter import OTLPSpanExporter
-
-from opentelemetry import metrics
-from opentelemetry.sdk.metrics.export import ConsoleMetricsExporter
-from opentelemetry.exporter.otlp.metrics_exporter import OTLPMetricsExporter
 
 app = Flask("api")
 
@@ -31,12 +26,11 @@ def hello_world(username):
 
 
 if __name__ == '__main__':
-    resource = Resource({"service.name": "gateway"})
+    endpoint = "{}:{}".format(os.getenv("OTC_HOST"), os.getenv("OTC_PORT", "55680"))
+    print('OTC Collector endpoint set to {}'.format(endpoint))
 
-    trace.get_tracer_provider().resource = resource
-    trace.get_tracer_provider().add_span_processor(BatchExportSpanProcessor(OTLPSpanExporter(os.getenv("OTC_HOST"))))
-
-    metrics.get_meter_provider().resource = resource
-    metrics.get_meter_provider().start_pipeline(RequestsInstrumentor().meter, ConsoleMetricsExporter(), 1)
+    trace.set_tracer_provider(TracerProvider(resource=Resource({"service.name": "booking"})))
+    trace.get_tracer_provider().add_span_processor(BatchExportSpanProcessor(OTLPSpanExporter(endpoint=endpoint,
+                                                                                             insecure=True)))
 
     app.run(debug=True, host='0.0.0.0')

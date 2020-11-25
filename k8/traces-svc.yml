@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traces-deploy
+  labels:
+    app: traces
+spec:
+  selector:
+    matchLabels:
+      app: traces
+  template:
+    spec:
+      containers:
+        - name: traces-container
+          image: dtr.corp.appdynamics.com/pavan.krishna/mock-traces-ingest:latest
+          ports:
+            - containerPort: 5000
+          command: ["./serve_grpc"]
+    metadata:
+      labels:
+        app: traces
+  replicas: 1
+  minReadySeconds: 10
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traces-svc
+  labels:
+    app: traces
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5000
+      protocol: TCP
+  selector:
+    app: traces

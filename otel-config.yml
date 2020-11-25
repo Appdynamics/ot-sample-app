@@ -9,16 +9,8 @@ exporters:
     insecure: true
     headers: {"x-appd-key": "efgh"}
 
-  otlphttp:
-    endpoint: http://http-ingest:5000
-    insecure: true
-    headers: {"x-appd-key": "abcd"}
-
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [otlp, otlphttp]
-    metrics:
-      receiver: [redis]
-      exporters: [otlphttp]
+      exporters: [otlp]
