@@ -1,6 +1,7 @@
 # OpenTelemetry Sample Application
 
 ![Application](docs/sample-traces.png)
+![K8 Metrics](docs/sample-metrics.png)
 
 
 A Simple Reservation system with microservices api/booking/reservations/payments
