@@ -39,9 +39,7 @@ data:
             - cluster
             - namespace
             - node
-            - startTime        
-        filter:
-          node_from_env_var: K8S_NODE
+            - startTime
       memory_limiter:
         ballast_size_mib: 165
         limit_mib: 400
@@ -55,7 +53,6 @@ data:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [k8s_tagger, resourcedetection/system]
           exporters: [otlp]
         metrics:
           receivers: [kubeletstats]

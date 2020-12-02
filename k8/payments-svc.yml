@@ -22,6 +22,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: CONTAINER_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
             - name: OTC_PORT
               value: "55680"
             - name: PAY_SVC
@@ -30,6 +34,8 @@ spec:
               value: http://reservations-svc:5000/reserve
             - name: BOOK_SVC
               value: http://bookings-svc:5000/booking
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "container.id=$(CONTAINER_NAME)"
     metadata:
       labels:
         app: payments

@@ -22,6 +22,12 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: CONTAINER_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "container.id=$(CONTAINER_NAME)"
             - name: OTC_PORT
               value: "55680"
             - name: PAY_SVC
