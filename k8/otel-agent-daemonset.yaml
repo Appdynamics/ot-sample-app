@@ -25,6 +25,23 @@ data:
         insecure: true
     processors:
       batch:
+      resourcedetection/system:
+        detectors: [env, system]
+        timeout: 2s
+        override: false
+      k8s_tagger:
+        extract:
+          metadata:
+            # extract the following well-known metadata fields
+            - podName
+            - podUID
+            - deployment
+            - cluster
+            - namespace
+            - node
+            - startTime        
+        filter:
+          node_from_env_var: K8S_NODE
       memory_limiter:
         ballast_size_mib: 165
         limit_mib: 400
@@ -38,10 +55,11 @@ data:
       pipelines:
         traces:
           receivers: [otlp]
+          processors: [k8s_tagger, resourcedetection/system]
           exporters: [otlp]
         metrics:
           receivers: [kubeletstats]
-          processors: [memory_limiter, batch]
+          processors: [k8s_tagger, resourcedetection/system, memory_limiter, batch]
           exporters: [otlp]
 ---
 apiVersion: apps/v1
