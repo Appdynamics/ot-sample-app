@@ -24,11 +24,16 @@ data:
         endpoint: otel-collector:55680
         insecure: true
     processors:
+      metricstransform/k8podmetrics:
+        transforms:
+          - include: ^k8s\.pod\.network\.(?P<value>\w+).total$
+            match_type: regexp
+            action: update
+            operations:
+              - action: aggregate_labels
+                label_set: [ direction ]
+                aggregation_type: sum
       batch:
-      resourcedetection/system:
-        detectors: [env, system]
-        timeout: 2s
-        override: false
       k8s_tagger:
         extract:
           metadata:
@@ -56,7 +61,7 @@ data:
           exporters: [otlp]
         metrics:
           receivers: [kubeletstats]
-          processors: [k8s_tagger, resourcedetection/system, memory_limiter, batch]
+          processors: [k8s_tagger, metricstransform/k8podmetrics, memory_limiter, batch]
           exporters: [otlp]
 ---
 apiVersion: apps/v1
