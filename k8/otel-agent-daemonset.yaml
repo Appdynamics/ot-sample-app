@@ -26,13 +26,34 @@ data:
     processors:
       metricstransform/k8podmetrics:
         transforms:
-          - include: ^k8s\.pod\.network\.(?P<value>\w+).total$
+          - include: ^k8s\.pod\.network\.(?P<value>\w+)$
             match_type: regexp
             action: update
+            new_name: k8s.pod.network.$$value.total
             operations:
               - action: aggregate_labels
                 label_set: [ direction ]
                 aggregation_type: sum
+          - include: ^k8s\.pod\.network\.(?P<value>\w+).total$
+            match_type: regexp
+            action: insert
+            new_name: k8s.pod.network.$$value.total.tx
+            operations:
+              - action: aggregate_label_values
+                label: direction
+                aggregation_type: sum
+                new_value: direction
+                aggregated_values: [transmit]
+          - include: ^k8s\.pod\.network\.(?P<value>\w+).total$
+            match_type: regexp
+            action: insert
+            new_name: k8s.pod.network.$$value.total.rx
+            operations:
+              - action: aggregate_label_values
+                label: direction
+                aggregation_type: sum
+                new_value: direction
+                aggregated_values: [receive]
       batch:
       k8s_tagger:
         extract:
