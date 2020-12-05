@@ -9,15 +9,18 @@ along with OpenTelemetry Collector to Monitor the K8 cluster
 
 ## Deploy AD-Capital to A Kubernetes Cluster
 
-This directory contains all  Kubernetes resource definition files to deploy AD-Capital Application to a Kubernetes Cluster.
 The following files need to modified to reflect the AppDynamics SaaS Controller being used:
-
 
 | File      | Instructions |
 | ----------- | ----------- |
 | env-configmap.yaml      | Modify the fields: APPDYNAMICS_* to point to your controller       |
 | secret.yaml   |  Base64 encode the Controller Account name and the Controller access key here. Use the command echo -n “XYZ” `|` base64 |
-| otel-collector-svc.yml | |
+
+## Deployment
+
+Once you have Kubernetes cluster (docker-desktop, minikube, EKS, GKE), apply the deployment files. 
+
+- $ `kubectl apply -f ../appd-apm-k8`
 
 ## Services
 
@@ -37,11 +40,7 @@ The following files need to modified to reflect the AppDynamics SaaS Controller 
 | secret.yaml  |   Base64 encoded environment variables     |
 | env-configmap.yaml | Clear text environment variables |
 
-## Deployment 
 
-Once you have Kubernetes cluster (docker-desktop, minikube, EKS, GKE), apply the deployment files.
-
-- $ `kubectl apply -f ../appd-apm-k8`
 
 ## Observability 
 
