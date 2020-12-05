@@ -1,5 +1,8 @@
 # AD-Capital-K8s-V1 
 
+This deployment is essentially a fork of [AD_Capital application](https://github.com/Appdynamics/AD-Capital-K8s-Lab.git) 
+
+
 This directory contains K8s Resource Definition files to deploy AD-Capital application monitored using Java Agent
 along with OpenTelemetry Collector to Monitor the K8 cluster
 
