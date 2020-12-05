@@ -1,5 +1,6 @@
 # AD-Capital-K8s-V1 
 
+## Credits
 This deployment is essentially a fork of [AD_Capital application](https://github.com/Appdynamics/AD-Capital-K8s-Lab.git) 
 
 
