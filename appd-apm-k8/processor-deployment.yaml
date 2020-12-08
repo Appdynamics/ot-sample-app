@@ -48,7 +48,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
-        image: appddemo/adcapital-tomcat:latest
+        image: dtr.corp.appdynamics.com/pavan.krishna/adcapital-tomcat:latest
         envFrom:
           - configMapRef:
               name: env-map
@@ -79,6 +79,9 @@ spec:
           type: Socket
       - name: project
       - name: appdynamics
+        hostPath:
+          path: /Users/pavankri/Work/ot-sample-app/appdynamics
+          type: Directory
       initContainers:
         - image: appddemo/adcapital-project
           name: provider

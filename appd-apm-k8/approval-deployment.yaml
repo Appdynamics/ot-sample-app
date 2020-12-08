@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
       - name: approval
-        image: lincharles/adcapital-tomcat:latest
+        image: dtr.corp.appdynamics.com/pavan.krishna/adcapital-tomcat:latest
         imagePullPolicy: Always
         #image: appddemo/adcapital-tomcat:latest
         env:
@@ -48,6 +48,8 @@ spec:
           readOnly: true
         - mountPath: /project
           name: project
+        - mountPath: /appdynamics
+          name: appdynamics
       restartPolicy: Always
       volumes:
       - name: hostroot
@@ -55,13 +57,16 @@ spec:
           path: /
           type: Directory
       - name: project
+      - name: appdynamics
+        hostPath:
+          path: /Users/pavankri/Work/ot-sample-app/appdynamics
+          type: Directory
       initContainers:
         - image: appddemo/adcapital-project
           name: provider
           volumeMounts:
           - mountPath: /project
             name: project
-status: {}
 # Service
 ---
 apiVersion: v1
