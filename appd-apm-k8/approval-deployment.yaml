@@ -32,41 +32,36 @@ spec:
         app: approval
     spec:
       containers:
-      - name: approval
-        image: dtr.corp.appdynamics.com/pavan.krishna/adcapital-tomcat:latest
-        imagePullPolicy: Always
-        #image: appddemo/adcapital-tomcat:latest
-        env:
-        - name: ROLE
-          value: approval
-        ports:
-        - containerPort: 8080
-        resources: {}
-        volumeMounts:
-        - mountPath: /hostroot
-          name: hostroot
-          readOnly: true
-        - mountPath: /project
-          name: project
-        - mountPath: /appdynamics
-          name: appdynamics
+        - name: approval
+          image: lincharles/adcapital-tomcat:latest
+          imagePullPolicy: Always
+          #image: appddemo/adcapital-tomcat:latest
+          env:
+            - name: ROLE
+              value: approval
+          ports:
+            - containerPort: 8080
+          resources: {}
+          volumeMounts:
+            - mountPath: /hostroot
+              name: hostroot
+              readOnly: true
+            - mountPath: /project
+              name: project
       restartPolicy: Always
       volumes:
-      - name: hostroot
-        hostPath:
-          path: /
-          type: Directory
-      - name: project
-      - name: appdynamics
-        hostPath:
-          path: /Users/pavankri/Work/ot-sample-app/appdynamics
-          type: Directory
+        - name: hostroot
+          hostPath:
+            path: /
+            type: Directory
+        - name: project
       initContainers:
         - image: appddemo/adcapital-project
           name: provider
           volumeMounts:
-          - mountPath: /project
-            name: project
+            - mountPath: /project
+              name: project
+status: {}
 # Service
 ---
 apiVersion: v1
@@ -77,9 +72,9 @@ metadata:
   name: approval
 spec:
   ports:
-  - name: "8080"
-    port: 8080
-    targetPort: 8080
+    - name: "8080"
+      port: 8080
+      targetPort: 8080
   selector:
     app: approval
 status:
