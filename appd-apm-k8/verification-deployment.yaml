@@ -22,6 +22,8 @@ spec:
     spec:
       containers:
       - env:
+        - name: APPDYNAMICS_CONTAINER_ENABLED
+          value: "true"
         - name: APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY
           valueFrom:
             secretKeyRef:
