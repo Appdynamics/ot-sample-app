@@ -17,6 +17,11 @@ data:
         auth_type: "serviceAccount"
         endpoint: "${K8S_NODE_NAME}:10250"
         insecure_skip_verify: true
+        extra_metadata_labels:
+          - container.id
+        metric_groups:
+          - pod
+          - container
     exporters:
       logging:
         loglevel: debug
@@ -24,36 +29,6 @@ data:
         endpoint: otel-collector:55680
         insecure: true
     processors:
-      metricstransform/k8podmetrics:
-        transforms:
-          - include: ^k8s\.pod\.network\.(?P<value>\w+)$
-            match_type: regexp
-            action: update
-            new_name: k8s.pod.network.$$value.total
-            operations:
-              - action: aggregate_labels
-                label_set: [ direction ]
-                aggregation_type: sum
-          - include: ^k8s\.pod\.network\.(?P<value>\w+).total$
-            match_type: regexp
-            action: insert
-            new_name: k8s.pod.network.$$value.total.tx
-            operations:
-              - action: aggregate_label_values
-                label: direction
-                aggregation_type: sum
-                new_value: direction
-                aggregated_values: [transmit]
-          - include: ^k8s\.pod\.network\.(?P<value>\w+).total$
-            match_type: regexp
-            action: insert
-            new_name: k8s.pod.network.$$value.total.rx
-            operations:
-              - action: aggregate_label_values
-                label: direction
-                aggregation_type: sum
-                new_value: direction
-                aggregated_values: [receive]
       batch:
       k8s_tagger:
         extract:
@@ -82,7 +57,7 @@ data:
           exporters: [otlp]
         metrics:
           receivers: [kubeletstats]
-          processors: [k8s_tagger, metricstransform/k8podmetrics, memory_limiter, batch]
+          processors: [k8s_tagger, memory_limiter, batch]
           exporters: [otlp]
 ---
 apiVersion: apps/v1
@@ -104,40 +79,40 @@ spec:
         component: otel-agent
     spec:
       containers:
-      - command:
-          - "/otelcontribcol"
-          - "--config=/conf/otel-agent-config.yaml"
-          - "--mem-ballast-size-mib=165"
-        image: otel/opentelemetry-collector-contrib:0.15.0
-        name: otel-agent
-        env:
-          - name: K8S_NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-        resources:
-          limits:
-            cpu: 500m
-            memory: 500Mi
-          requests:
-            cpu: 100m
-            memory: 100Mi
-        ports:
-        - containerPort: 55679 # ZPages endpoint.
-        - containerPort: 55680 # Default OpenTelemetry receiver port.
-          hostPort: 55680
-        - containerPort: 8888  # Metrics.
-        volumeMounts:
-        - name: otel-agent-config-vol
-          mountPath: /conf
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 13133 # Health Check extension default port.
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 13133 # Health Check extension default port.
+        - command:
+            - "/otelcontribcol"
+            - "--config=/conf/otel-agent-config.yaml"
+            - "--mem-ballast-size-mib=165"
+          image: otel/opentelemetry-collector-contrib:0.15.0
+          name: otel-agent
+          env:
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          resources:
+            limits:
+              cpu: 500m
+              memory: 500Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          ports:
+            - containerPort: 55679 # ZPages endpoint.
+            - containerPort: 55680 # Default OpenTelemetry receiver port.
+              hostPort: 55680
+            - containerPort: 8888  # Metrics.
+          volumeMounts:
+            - name: otel-agent-config-vol
+              mountPath: /conf
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133 # Health Check extension default port.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133 # Health Check extension default port.
       volumes:
         - name: otel-agent-config-vol
           configMap:
@@ -145,4 +120,3 @@ spec:
             items:
               - key: otel-agent-config
                 path: otel-agent-config.yaml
-
