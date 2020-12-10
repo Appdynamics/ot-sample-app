@@ -14,11 +14,6 @@ data:
           grpc:
           http:
     processors:
-      resource:
-        attributes:
-        - key: appd.metrics.granularity
-          value: "60"
-          action: upsert
       batch:
         send_batch_size: 1000
         timeout: 60s
