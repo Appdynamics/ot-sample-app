@@ -37,6 +37,12 @@ data:
         - key: container.image.name
           value: "ADCapital"
           action: upsert
+        - key: k8s.pod.ip
+          value: ${HOST_IP}
+          action: upsert
+        - key: host.name
+          value: ${K8S_NODE_NAME}
+          action: upsert
       batch:
       k8s_tagger:
         extract:
@@ -98,6 +104,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
           resources:
             limits:
               cpu: 500m

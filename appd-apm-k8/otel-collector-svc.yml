@@ -14,6 +14,13 @@ data:
           grpc:
           http:
     processors:
+      filter/cpu:
+        metrics:
+          include:
+            match_type: strict
+            metric_names:
+              - container.cpu.utilization
+              - k8s.pod.cpu.utilization
       batch:
         send_batch_size: 1000
         timeout: 60s
@@ -45,7 +52,7 @@ data:
           exporters: [zipkin]
         metrics:
           receivers: [otlp]
-          processors: [memory_limiter, batch]
+          processors: [filter/cpu, memory_limiter, batch]
           exporters: [otlphttp/cni, prometheus, logging]
 ---
 apiVersion: apps/v1
