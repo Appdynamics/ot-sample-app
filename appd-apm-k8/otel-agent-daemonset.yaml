@@ -29,6 +29,14 @@ data:
         endpoint: otel-collector:55680
         insecure: true
     processors:
+      resource:
+        attributes:
+        - key: k8s.node.name
+          value: ${K8S_NODE_NAME}
+          action: upsert
+        - key: container.image.name
+          value: "ADCapital"
+          action: upsert
       batch:
       k8s_tagger:
         extract:
@@ -57,7 +65,7 @@ data:
           exporters: [otlp]
         metrics:
           receivers: [kubeletstats]
-          processors: [k8s_tagger, memory_limiter, batch]
+          processors: [resource, k8s_tagger, memory_limiter, batch]
           exporters: [otlp]
 ---
 apiVersion: apps/v1
