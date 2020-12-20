@@ -44,6 +44,12 @@ data:
           value: ${K8S_NODE_NAME}
           action: upsert
       batch:
+      metricstransform:
+        transforms:
+          - include: ^k8s\.pod\.(.*)$
+            match_type: regexp
+            action: group
+            group_resource_labels: {"resouce.type": "k8s.pod", "foo": "bar"}
       k8s_tagger:
         extract:
           metadata:
@@ -71,7 +77,7 @@ data:
           exporters: [otlp]
         metrics:
           receivers: [kubeletstats]
-          processors: [resource, k8s_tagger, memory_limiter, batch]
+          processors: [metricstransform, memory_limiter, batch]
           exporters: [otlp]
 ---
 apiVersion: apps/v1
@@ -97,7 +103,8 @@ spec:
             - "/otelcontribcol"
             - "--config=/conf/otel-agent-config.yaml"
             - "--mem-ballast-size-mib=165"
-          image: otel/opentelemetry-collector-contrib:0.15.0
+          #image: otel/opentelemetry-collector-contrib:0.15.0
+          image: dtr.corp.appdynamics.com/pavan.krishna/otelcontribcol:latest
           name: otel-agent
           env:
             - name: K8S_NODE_NAME

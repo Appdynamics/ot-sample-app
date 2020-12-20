@@ -21,6 +21,8 @@ spec:
         app: portal
     spec:
       containers:
+      - name: db
+        image: mongo:3.3
       - env:
         - name: APPDYNAMICS_CONTAINER_ENABLED
           value: "true"

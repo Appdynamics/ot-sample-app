@@ -20,7 +20,11 @@ data:
             match_type: strict
             metric_names:
               - container.cpu.utilization
+              - container.filesystem.usage
+              - container.memory.usage
               - k8s.pod.cpu.utilization
+              - k8s.pod.filesystem.usage
+              - k8s.pod.memory.usage
       batch:
         send_batch_size: 1000
         timeout: 60s
