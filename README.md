@@ -35,7 +35,7 @@ Once you have Kubernetes cluster (docker-desktop, minikube, EKS, GKE), apply the
 NodePort services for application gateway, prometheus, zipkin are exposed on NodePort services on 
 30001, 30002, 30003 respectively 
 
-- $ `kubectl apply -f k8/`
+- $ `kubectl apply -f demos/k8/`
 
 -  Traces `<domain> = localhost` (if running locally)
    - Can be generated doing a GET on API service  `curl -v http://<domain>>:30001/book/somerandom`
@@ -43,7 +43,7 @@ NodePort services for application gateway, prometheus, zipkin are exposed on Nod
 -  Metrics `<domain> = localhost` (if running locally)
    - Can be viewed on prometheus hosted `http://<domain>:30002/`
 
-- $ `kubectl delete -f k8/`
+- $ `kubectl delete -f demos/k8/`
 
 
 
