@@ -13,11 +13,16 @@ data:
         config:
           scrape_configs:
             - job_name: 'kube-state-metrics'
-              scrape_interval: 120s
+              scrape_interval: 60s
               static_configs:
                 - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
                 - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8881']
     processors:
+      resource:
+        attributes:
+        - key: appdynamics.granularity
+          value: "60"
+          action: upsert
       batch:
       memory_limiter:
         ballast_size_mib: 683
@@ -40,8 +45,8 @@ data:
       pipelines:
         metrics:
           receivers: [prometheus/kubestats]
-          processors: [memory_limiter, batch]
-          exporters: [prometheus/self, otlphttp/ce]
+          processors: [resource, memory_limiter, batch]
+          exporters: [prometheus/self, otlphttp/ce, logging]
 ---
 apiVersion: apps/v1
 kind: Deployment
