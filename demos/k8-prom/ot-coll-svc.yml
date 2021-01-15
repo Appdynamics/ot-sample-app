@@ -18,12 +18,6 @@ data:
                 - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
                 - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8881']
     processors:
-      resource:
-        attributes:
-          - key: appdynamics.interval
-            value: "60"
-            action: upsert
-          - key: properties.host.id
       batch:
       memory_limiter:
         ballast_size_mib: 683
@@ -46,7 +40,7 @@ data:
       pipelines:
         metrics:
           receivers: [prometheus/kubestats]
-          processors: [resource, memory_limiter, batch]
+          processors: [memory_limiter, batch]
           exporters: [prometheus/self, otlphttp/ce]
 ---
 apiVersion: apps/v1
