@@ -1,0 +1,123 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-agent-conf
+  labels:
+    app: opentelemetry
+    component: otel-agent-conf
+data:
+  otel-agent-config: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+      kubeletstats:
+        collection_interval: 20s
+        auth_type: "serviceAccount"
+        endpoint: "${K8S_NODE_NAME}:10250"
+        insecure_skip_verify: true
+        extra_metadata_labels:
+          - container.id
+        metric_groups:
+          - pod
+          - container
+    exporters:
+      logging:
+        loglevel: debug
+      otlp:
+        endpoint: otel-collector:55680
+        insecure: true
+    processors:
+      batch:
+      k8s_tagger:
+        extract:
+          metadata:
+            # extract the following well-known metadata fields
+            - podName
+            - podUID
+            - deployment
+            - cluster
+            - namespace
+            - node
+            - startTime
+      memory_limiter:
+        ballast_size_mib: 165
+        limit_mib: 400
+        spike_limit_mib: 100
+        check_interval: 5s
+    extensions:
+      health_check: {}
+      zpages: {}
+    service:
+      extensions: [health_check, zpages]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [otlp]
+        metrics:
+          receivers: [kubeletstats]
+          processors: [k8s_tagger, memory_limiter, batch]
+          exporters: [otlp]
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: otel-agent
+  labels:
+    app: opentelemetry
+    component: otel-agent
+spec:
+  selector:
+    matchLabels:
+      app: opentelemetry
+      component: otel-agent
+  template:
+    metadata:
+      labels:
+        app: opentelemetry
+        component: otel-agent
+    spec:
+      containers:
+      - command:
+          - "/otelcontribcol"
+          - "--config=/conf/otel-agent-config.yaml"
+          - "--mem-ballast-size-mib=165"
+        image: otel/opentelemetry-collector-contrib:0.24.0
+        name: otel-agent
+        env:
+          - name: K8S_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 55679 # ZPages endpoint.
+        - containerPort: 55680 # Default OpenTelemetry receiver port.
+          hostPort: 55680
+        - containerPort: 8888  # Metrics.
+        volumeMounts:
+        - name: otel-agent-config-vol
+          mountPath: /conf
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 13133 # Health Check extension default port.
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 13133 # Health Check extension default port.
+      volumes:
+        - name: otel-agent-config-vol
+          configMap:
+            name: otel-agent-conf
+            items:
+              - key: otel-agent-config
+                path: otel-agent-config.yaml
+
