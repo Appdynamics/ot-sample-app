@@ -63,7 +63,7 @@ spec:
             - "/otelcontribcol"
             - "--config=/conf/otel-collector-config.yaml"
             - "--mem-ballast-size-mib=683"
-          image: otel/opentelemetry-collector-contrib:0.15.0
+          image: otel/opentelemetry-collector-contrib:0.24.0
           name: otel-collector
           resources:
             limits:
